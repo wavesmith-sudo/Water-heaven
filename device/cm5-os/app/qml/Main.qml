@@ -19,14 +19,17 @@ Window {
     property int seriesReturnIndex: 0
     property string playerReturnPage: "Library"
 
-    readonly property var categories: [
-        {label: "Movies", icon: "movies"},
-        {label: "TV Shows", icon: "tv"},
-        {label: "Music", icon: "music"},
-        {label: "Retro Games", icon: "games"},
-        {label: "Continue Watching", icon: "resume"},
-        {label: "Settings", icon: "settings"}
+    readonly property var allCategories: [
+        {label: "Movies", icon: "movies", feature: "movies"},
+        {label: "TV Shows", icon: "tv", feature: "tv"},
+        {label: "Music", icon: "music", feature: "music"},
+        {label: "Retro Games", icon: "games", feature: "retro_games"},
+        {label: "Continue Watching", icon: "resume", feature: ""},
+        {label: "Settings", icon: "settings", feature: ""}
     ]
+    // Tiles the cloud has not disabled (all of them while unpaired or offline).
+    readonly property var categories: { cloud.features; return allCategories.filter(c => !c.feature || cloud.featureEnabled(c.feature)) }
+    onCategoriesChanged: if (page === "Home") selected = Math.min(selected, categories.length - 1)
 
     function openPage(p) { page = p; selected = 0; keys.forceActiveFocus() }
 
@@ -183,35 +186,77 @@ Window {
     FocusScope {
         id: settingsPage
         visible: root.page === "Settings"
-        anchors { left: parent.left; top: header.bottom; leftMargin: 120 * root.u; topMargin: 40 * root.u }
-        width: 900 * root.u; height: 700 * root.u
+        anchors { left: parent.left; right: parent.right; top: header.bottom; leftMargin: 120 * root.u; topMargin: 40 * root.u }
+        height: 760 * root.u
         // Escape/Back leave the page; Backspace stays with the text field for editing.
         Keys.onPressed: function(e) {
             if (e.key === Qt.Key_Escape || e.key === Qt.Key_Back) { root.back(); e.accepted = true }
         }
         Column {
+            id: jellyfinColumn
             spacing: 18 * root.u
             Text { text: "JELLYFIN CONNECTION"; color: T.cyan; font.pixelSize: 34 * root.u; font.bold: true }
             Text { text: "Device ID " + jellyfin.deviceId; color: T.muted; font.pixelSize: 18 * root.u }
-            ArcadeField { id: serverField; u: root.u; width: 760 * root.u; text: jellyfin.server; placeholderText: "https://media.example.com"
-                KeyNavigation.down: userField; inputMethodHints: Qt.ImhUrlCharactersOnly | Qt.ImhNoAutoUppercase }
-            ArcadeField { id: userField; u: root.u; width: 760 * root.u; placeholderText: "Username"
-                KeyNavigation.up: serverField; KeyNavigation.down: passwordField; inputMethodHints: Qt.ImhNoAutoUppercase }
-            ArcadeField { id: passwordField; u: root.u; width: 760 * root.u; placeholderText: "Password"; echoMode: TextInput.Password
-                KeyNavigation.up: userField; KeyNavigation.down: connectButton
+            ArcadeField { id: serverField; u: root.u; width: 720 * root.u; text: jellyfin.server; placeholderText: "https://media.example.com"
+                KeyNavigation.down: userField; KeyNavigation.right: cloudUrlField; inputMethodHints: Qt.ImhUrlCharactersOnly | Qt.ImhNoAutoUppercase }
+            ArcadeField { id: userField; u: root.u; width: 720 * root.u; placeholderText: "Username"
+                KeyNavigation.up: serverField; KeyNavigation.down: passwordField; KeyNavigation.right: cloudUrlField; inputMethodHints: Qt.ImhNoAutoUppercase }
+            ArcadeField { id: passwordField; u: root.u; width: 720 * root.u; placeholderText: "Password"; echoMode: TextInput.Password
+                KeyNavigation.up: userField; KeyNavigation.down: connectButton; KeyNavigation.right: cloudUrlField
                 onAccepted: connectButton.clicked() }
             Row {
                 spacing: 20 * root.u
                 ArcadeButton { id: connectButton; u: root.u; text: jellyfin.busy ? "Connecting…" : "Connect"; enabled: !jellyfin.busy
-                    KeyNavigation.up: passwordField; KeyNavigation.right: signOutButton
+                    KeyNavigation.up: passwordField; KeyNavigation.right: jellyfin.signedIn ? signOutButton : pairButton
                     onClicked: { jellyfin.server = serverField.text; if (jellyfin.error.length === 0) jellyfin.login(userField.text, passwordField.text); passwordField.text = "" } }
                 ArcadeButton { id: signOutButton; u: root.u; text: "Sign out"; visible: jellyfin.signedIn
-                    KeyNavigation.left: connectButton; KeyNavigation.up: passwordField
+                    KeyNavigation.left: connectButton; KeyNavigation.up: passwordField; KeyNavigation.right: pairButton
                     onClicked: jellyfin.logout() }
             }
             Text { text: jellyfin.error; color: T.danger; font.pixelSize: 22 * root.u; visible: text.length > 0 }
             Text { text: jellyfin.signedIn ? "Signed in as " + jellyfin.userName : "Not signed in"; color: jellyfin.signedIn ? T.ok : T.muted; font.pixelSize: 22 * root.u }
             Text { text: "Use HTTPS outside a trusted local network."; color: T.muted; font.pixelSize: 20 * root.u }
+        }
+
+        Column {
+            id: cloudColumn
+            x: 860 * root.u
+            spacing: 18 * root.u
+            Text { text: "ARCADE CLOUD"; color: T.cyan; font.pixelSize: 34 * root.u; font.bold: true }
+            Text { color: T.muted; font.pixelSize: 18 * root.u
+                text: cloud.paired ? "Paired as " + cloud.deviceName + (cloud.online ? "" : "  (offline, using saved settings)") : "Not paired" }
+            ArcadeField { id: cloudUrlField; u: root.u; width: 720 * root.u; text: cloud.apiUrl; placeholderText: "https://arcade.example.com"
+                KeyNavigation.left: serverField; KeyNavigation.down: pairButton; inputMethodHints: Qt.ImhUrlCharactersOnly | Qt.ImhNoAutoUppercase
+                onAccepted: pairButton.clicked() }
+            Row {
+                spacing: 20 * root.u
+                ArcadeButton { id: pairButton; u: root.u
+                    text: cloud.state === "pairing" ? "Cancel" : cloud.paired ? "Pair again" : "Pair"
+                    KeyNavigation.up: cloudUrlField; KeyNavigation.left: connectButton; KeyNavigation.right: cloud.paired ? unpairButton : null
+                    onClicked: {
+                        if (cloud.state === "pairing") { cloud.cancelPairing(); return }
+                        cloud.apiUrl = cloudUrlField.text
+                        cloud.startPairing()
+                    } }
+                ArcadeButton { id: unpairButton; u: root.u; text: "Unpair"; visible: cloud.paired && cloud.state !== "pairing"
+                    KeyNavigation.left: pairButton; KeyNavigation.up: cloudUrlField
+                    onClicked: cloud.unpair() }
+            }
+            // The code to type on the owner's phone or laptop.
+            Rectangle {
+                visible: cloud.state === "pairing" && cloud.userCode.length > 0
+                width: 720 * root.u; height: 230 * root.u; radius: 14 * root.u
+                color: "#160d2e"; border.color: T.yellow; border.width: 4
+                Column {
+                    anchors.centerIn: parent; spacing: 10 * root.u
+                    Text { anchors.horizontalCenter: parent.horizontalCenter; text: "Approve this code in the Arcade dashboard"; color: T.text; font.pixelSize: 22 * root.u }
+                    Text { anchors.horizontalCenter: parent.horizontalCenter; text: cloud.userCode; color: T.yellow; font.pixelSize: 84 * root.u; font.bold: true; font.letterSpacing: 8; font.family: "monospace" }
+                    Text { anchors.horizontalCenter: parent.horizontalCenter; color: T.muted; font.pixelSize: 20 * root.u
+                        text: "Expires in " + Math.floor(cloud.codeSecondsLeft / 60) + ":" + ("0" + cloud.codeSecondsLeft % 60).slice(-2) }
+                }
+            }
+            Text { visible: cloud.state === "pairing" && cloud.userCode.length === 0; text: "Requesting a code…"; color: T.cyan; font.pixelSize: 22 * root.u }
+            Text { text: cloud.error; color: T.danger; font.pixelSize: 22 * root.u; visible: text.length > 0; width: 720 * root.u; wrapMode: Text.WordWrap }
         }
     }
 
@@ -247,7 +292,7 @@ Window {
         anchors { horizontalCenter: parent.horizontalCenter; bottom: parent.bottom; bottomMargin: 36 * root.u }
         scale: root.u; transformOrigin: Item.Bottom
         hints: root.page === "Settings"
-               ? [{key: "▲ ▼", label: "Move"}, {key: "Esc", label: "Back", color: "#e0303c"}]
+               ? [{key: "▲ ▼ ◀ ▶", label: "Move"}, {key: "Esc", label: "Back", color: "#e0303c"}]
                : [{key: "◀ ▶", label: "Navigate"}, {key: "A", label: "Select", color: T.ok}, {key: "B", label: "Back", color: "#e0303c"}]
     }
     Text { visible: jellyfin.busy; anchors { right: parent.right; bottom: parent.bottom; margins: 40 * root.u } text: "LOADING…"; color: T.cyan; font.pixelSize: 24 * root.u; font.bold: true }

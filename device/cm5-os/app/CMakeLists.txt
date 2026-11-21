@@ -10,6 +10,7 @@ find_package(Qt6 6.4 REQUIRED COMPONENTS Core Gui Qml Quick Network Multimedia)
 
 # Everything except main(), so tests can link the same code the device runs.
 add_library(cm5-home-core STATIC
+    cloudclient.cpp cloudclient.h
     jellyfinclient.cpp jellyfinclient.h
     jellyfinimageprovider.cpp jellyfinimageprovider.h)
 target_include_directories(cm5-home-core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
@@ -29,4 +30,12 @@ if(CM5_HOME_BUILD_TESTS)
         FAKE_JELLYFIN="${CMAKE_CURRENT_SOURCE_DIR}/../tools/fake_jellyfin.py")
     add_test(NAME tst_jellyfinclient COMMAND tst_jellyfinclient)
     set_tests_properties(tst_jellyfinclient PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
+    # Runs the real FastAPI backend (services/backend) with uvicorn; needs its Python deps.
+    add_executable(tst_cloudclient tests/tst_cloudclient.cpp)
+    target_link_libraries(tst_cloudclient PRIVATE cm5-home-core Qt6::Test)
+    target_compile_definitions(tst_cloudclient PRIVATE
+        BACKEND_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../../../services/backend")
+    add_test(NAME tst_cloudclient COMMAND tst_cloudclient)
+    set_tests_properties(tst_cloudclient PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 endif()

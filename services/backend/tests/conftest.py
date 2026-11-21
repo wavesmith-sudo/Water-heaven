@@ -32,3 +32,10 @@ def device(client):
     assert r.status_code == 201
     body = r.json()
     return {"id": body["id"], "headers": {"Authorization": "Bearer " + body["device_token"]}}
+
+
+@pytest.fixture(autouse=True)
+def _reset_rate_limits():
+    from app import pairing
+    pairing.start_limiter.reset()
+    yield

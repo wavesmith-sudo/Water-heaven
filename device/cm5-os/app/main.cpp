@@ -7,6 +7,7 @@
 #include <QUrl>
 #include <cstdio>
 
+#include "cloudclient.h"
 #include "jellyfinclient.h"
 #include "jellyfinimageprovider.h"
 
@@ -33,9 +34,16 @@ int main(int argc, char *argv[])
     QGuiApplication::setApplicationVersion(QLatin1String(JellyfinClient::ClientVersion));
 
     JellyfinClient jellyfin;
+    CloudClient cloud(QLatin1String(JellyfinClient::ClientVersion));
+    // Once paired, Jellyfin sees the same device id as the cloud, so one id follows the unit.
+    auto syncDeviceId = [&]() { jellyfin.setDeviceId(cloud.paired() ? cloud.deviceId() : QString()); };
+    QObject::connect(&cloud, &CloudClient::configChanged, &jellyfin, syncDeviceId);
+    syncDeviceId();
+
     QQmlApplicationEngine engine;
     engine.addImageProvider(QStringLiteral("jellyfin"), new JellyfinImageProvider(&jellyfin));
     engine.rootContext()->setContextProperty(QStringLiteral("jellyfin"), &jellyfin);
+    engine.rootContext()->setContextProperty(QStringLiteral("cloud"), &cloud);
 
     int qmlWarnings = 0;
     QObject::connect(&engine, &QQmlEngine::warnings, &app, [&qmlWarnings](const QList<QQmlError> &w) { qmlWarnings += w.size(); });
