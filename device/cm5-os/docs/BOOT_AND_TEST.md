@@ -19,7 +19,15 @@ EGLFS, Qt Multimedia and the `cm5-home` package were all silently dropped, and E
 EGL/GBM provider. The v0.4 fragment adds Mesa (V3D + VC4), Qt Quick, OpenSSL, fonts, and a
 GStreamer + ALSA backend for Qt Multimedia.
 
-## Build (not yet run)
+## Build on GitHub Actions
+`.github/workflows/cm5-image.yml` builds the image at the pinned release. Start it from the
+Actions tab ("CM5 image (Buildroot)" → Run workflow) or push to a branch named `image-build/*`.
+A cold build can outlast the 6-hour job limit, so the job stops itself after 5 hours, saves its
+progress to the Actions cache, and the next run on the same branch continues. Re-run until green.
+The finished `sdcard.img.xz` (with SHA-256) and the build log are attached to the run as artifacts.
+On a private repository each run uses up to ~6 hours of Actions minutes.
+
+## Build locally
 ```sh
 cd /path/to/buildroot
 make BR2_EXTERNAL=/absolute/path/to/device/cm5-os/br2-external -j$(nproc)

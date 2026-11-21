@@ -1,0 +1,181 @@
+name: CM5 image (Buildroot)
+# Builds the full CM5 OS image at the Buildroot release pinned in device/cm5-os/toolchain.lock.
+#
+# A cold build takes longer than a GitHub-hosted job may run (6 h), so the job is resumable:
+# it stops itself before the limit, saves Buildroot's output/ to the Actions cache, and the next
+# run of this workflow on the same branch continues from there. Re-run until it goes green.
+#
+# Start it from the Actions tab ("Run workflow"), or by pushing to a branch named image-build/*.
+on:
+  workflow_dispatch:
+    inputs:
+      clean:
+        description: Ignore any saved partial build and start from scratch
+        type: boolean
+        default: false
+  push:
+    branches: ['image-build/**']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cm5-image-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  image:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 355
+    env:
+      WORK: /mnt/cm5
+      # Stop make this long after it starts, leaving time to save the cache (minutes).
+      MAKE_BUDGET_MIN: 300
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/.ghcup \
+            /opt/hostedtoolcache/CodeQL /usr/local/share/boost "$AGENT_TOOLSDIRECTORY" || true
+          sudo docker image prune --all --force || true
+          sudo mkdir -p "$WORK" && sudo chown "$USER" "$WORK"
+          df -h / /mnt
+
+      - name: Install Buildroot host dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends build-essential rsync cpio bc file wget \
+            unzip python3 libncurses-dev git zstd
+
+      - name: Read pinned versions
+        id: lock
+        run: |
+          . device/cm5-os/toolchain.lock
+          echo "tag=$BUILDROOT_TAG" >> "$GITHUB_OUTPUT"
+          echo "commit=$BUILDROOT_COMMIT" >> "$GITHUB_OUTPUT"
+          echo "base=$BASE_DEFCONFIG" >> "$GITHUB_OUTPUT"
+          echo "repo=$BUILDROOT_REPO" >> "$GITHUB_OUTPUT"
+
+      - name: Fetch Buildroot
+        run: |
+          git clone --depth 1 --branch "${{ steps.lock.outputs.tag }}" "${{ steps.lock.outputs.repo }}" "$WORK/buildroot"
+          test "$(git -C "$WORK/buildroot" rev-parse HEAD)" = "${{ steps.lock.outputs.commit }}"
+
+      - name: Restore source downloads
+        uses: actions/cache/restore@v4
+        with:
+          path: /mnt/cm5/buildroot/dl
+          key: br-dl-${{ steps.lock.outputs.tag }}-${{ hashFiles('device/cm5-os/br2-external/configs/*') }}
+          restore-keys: br-dl-${{ steps.lock.outputs.tag }}-
+
+      - name: Restore partial build
+        id: partial
+        if: ${{ !inputs.clean }}
+        uses: actions/cache/restore@v4
+        with:
+          path: /mnt/cm5/output.tar.zst
+          key: br-out-${{ github.ref_name }}-${{ github.run_id }}
+          restore-keys: br-out-${{ github.ref_name }}-
+
+      - name: Unpack partial build
+        if: steps.partial.outputs.cache-matched-key != ''
+        run: |
+          tar -C "$WORK/buildroot" -I zstd -xf "$WORK/output.tar.zst"
+          rm -f "$WORK/output.tar.zst"
+          echo "Resuming from ${{ steps.partial.outputs.cache-matched-key }}"
+
+      - name: Configure (fails if Kconfig drops a requested symbol)
+        run: bash device/cm5-os/scripts/configure.sh "$WORK/buildroot" "${{ steps.lock.outputs.base }}"
+
+      - name: Build
+        id: build
+        run: |
+          cd "$WORK/buildroot"
+          set +e
+          timeout --signal=INT "${MAKE_BUDGET_MIN}m" \
+            make BR2_EXTERNAL="$GITHUB_WORKSPACE/device/cm5-os/br2-external" BR2_JLEVEL="$(nproc)" \
+            > "$WORK/build.log" 2>&1
+          status=$?
+          set -e
+          tail -n 80 "$WORK/build.log"
+          df -h /mnt
+          if [ "$status" = 124 ] || [ "$status" = 130 ]; then
+            echo "result=partial" >> "$GITHUB_OUTPUT"
+            echo "::warning::Build budget reached. Partial build saved; run this workflow again to continue."
+          elif [ "$status" = 0 ]; then
+            echo "result=done" >> "$GITHUB_OUTPUT"
+          else
+            echo "result=failed" >> "$GITHUB_OUTPUT"
+            echo "::error::Buildroot build failed (exit $status). See build-log artifact."
+          fi
+
+      - name: Save source downloads
+        if: always() && steps.build.outcome != 'skipped'
+        uses: actions/cache/save@v4
+        with:
+          path: /mnt/cm5/buildroot/dl
+          key: br-dl-${{ steps.lock.outputs.tag }}-${{ hashFiles('device/cm5-os/br2-external/configs/*') }}-${{ github.run_id }}
+
+      - name: Pack partial build
+        if: steps.build.outputs.result == 'partial'
+        run: |
+          cd "$WORK/buildroot"
+          # Stay under the 10 GB cache limit: for packages that are completely installed, keep
+          # only their hidden stamp and file-list entries, which is all Buildroot checks on resume.
+          # The kernel's build tree is kept because later packages may build against it.
+          for d in output/build/*/; do
+            case "$(basename "$d")" in linux-*|toolchain*) continue ;; esac
+            [ -e "$d/.stamp_installed" ] || continue
+            find "$d" -mindepth 1 -maxdepth 1 ! -name '.*' -exec rm -rf {} +
+          done
+          du -sh output output/*
+          tar -I 'zstd -T0 -3' -cf "$WORK/output.tar.zst" output
+          ls -lh "$WORK/output.tar.zst"
+
+      - name: Save partial build
+        if: steps.build.outputs.result == 'partial'
+        uses: actions/cache/save@v4
+        with:
+          path: /mnt/cm5/output.tar.zst
+          key: br-out-${{ github.ref_name }}-${{ github.run_id }}
+
+      - name: Check the image contents
+        if: steps.build.outputs.result == 'done'
+        run: |
+          cd "$WORK/buildroot/output"
+          ls -lh images/
+          test -x target/usr/bin/cm5-home
+          ls target/usr/lib/libQt6Quick.so.6 target/usr/lib/libQt6Multimedia.so.6
+          ls -d target/usr/lib/gstreamer-1.0
+          xz -T0 -k images/sdcard.img
+          sha256sum images/sdcard.img.xz | tee images/sdcard.img.xz.sha256
+
+      - name: Upload image
+        if: steps.build.outputs.result == 'done'
+        uses: actions/upload-artifact@v4
+        with:
+          name: cm5-sdcard-${{ github.sha }}
+          path: |
+            /mnt/cm5/buildroot/output/images/sdcard.img.xz
+            /mnt/cm5/buildroot/output/images/sdcard.img.xz.sha256
+          retention-days: 14
+
+      - name: Upload build log
+        if: always() && steps.build.outcome != 'skipped'
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log-${{ github.run_id }}
+          path: |
+            /mnt/cm5/build.log
+            /mnt/cm5/buildroot/.config
+          retention-days: 14
+
+      - name: Report result
+        if: always()
+        run: |
+          case "${{ steps.build.outputs.result }}" in
+            done) echo "Image built." ;;
+            partial) echo "Partial build saved. Re-run this workflow to continue."; exit 1 ;;
+            *) exit 1 ;;
+          esac
