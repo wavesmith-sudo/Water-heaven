@@ -1,0 +1,17 @@
+#!/bin/sh
+case "$1" in
+  start)
+    export QT_QPA_PLATFORM=eglfs
+    export QT_QUICK_BACKEND=software
+    export XDG_RUNTIME_DIR=/run/cm5-home
+    mkdir -p "$XDG_RUNTIME_DIR"
+    chmod 0700 "$XDG_RUNTIME_DIR"
+    /usr/bin/cm5-home >/var/log/cm5-home.log 2>&1 &
+    echo $! >/var/run/cm5-home.pid
+    ;;
+  stop)
+    if [ -f /var/run/cm5-home.pid ]; then kill "$(cat /var/run/cm5-home.pid)" 2>/dev/null || true; rm -f /var/run/cm5-home.pid; fi
+    ;;
+  restart) "$0" stop; "$0" start ;;
+  *) echo "Usage: $0 {start|stop|restart}"; exit 1 ;;
+esac

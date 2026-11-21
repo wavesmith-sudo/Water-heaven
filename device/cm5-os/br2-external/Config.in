@@ -1,0 +1,3 @@
+menu "CM5 Media OS"
+source "$BR2_EXTERNAL_CM5_MEDIA_PATH/package/cm5-home/Config.in"
+endmenu
