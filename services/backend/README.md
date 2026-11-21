@@ -36,8 +36,9 @@ curl -X PATCH http://127.0.0.1:8000/api/v1/admin/features/retro_games \
 ## Local Python test
 ```
 python -m venv .venv && . .venv/bin/activate
-pip install -r requirements.txt
-pytest -q
+pip install -r requirements-dev.txt
+pytest
+python scripts/export_openapi.py   # after API changes; commit docs/openapi.json
 ```
 
 ## Security and limitations

@@ -1,5 +1,7 @@
 # Current v0.1 API contract (prototype)
 
+The machine-readable schema is `docs/openapi.json`; `tests/test_openapi_snapshot.py` fails when the API changes without updating it.
+
 Base path `/api/v1`; API served over HTTPS in any remote deployment.
 
 | Method | Path | Authentication | Purpose |

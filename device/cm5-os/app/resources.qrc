@@ -1,1 +1,14 @@
-<RCC><qresource prefix="/"><file>qml/Main.qml</file></qresource></RCC>
+<RCC>
+  <qresource prefix="/">
+    <file>qml/Main.qml</file>
+    <file>qml/Theme.js</file>
+    <file>qml/Backdrop.qml</file>
+    <file>qml/Glyph.qml</file>
+    <file>qml/CategoryTile.qml</file>
+    <file>qml/PosterCard.qml</file>
+    <file>qml/HintBar.qml</file>
+    <file>qml/PlayerView.qml</file>
+    <file>qml/ArcadeField.qml</file>
+    <file>qml/ArcadeButton.qml</file>
+  </qresource>
+</RCC>

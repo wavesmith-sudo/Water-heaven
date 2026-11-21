@@ -1,0 +1,7 @@
+# Environment for /etc/init.d/S95cm5home. Edit on the device to try another Qt backend.
+QT_QPA_PLATFORM=eglfs
+QT_QPA_EGLFS_INTEGRATION=eglfs_kms
+# Uncomment if GPU rendering fails on first bring-up; slower but has no GL dependency.
+#QT_QUICK_BACKEND=software
+# Set if the HDMI connector is not picked automatically, e.g. a KMS config JSON path.
+#QT_QPA_EGLFS_KMS_CONFIG=/etc/cm5-home-kms.json

@@ -1,0 +1,6 @@
+# Pinned build inputs for the CM5 image. Change deliberately and re-run scripts/configure.sh.
+# 2026.02.x is the Buildroot long-term-support series; it ships Qt 6.9.1 and a CM5 IO board defconfig.
+BUILDROOT_REPO=https://gitlab.com/buildroot.org/buildroot.git
+BUILDROOT_TAG=2026.02.3
+BUILDROOT_COMMIT=679b9ead7620bbf193620d1ebf56f53c1764d37a
+BASE_DEFCONFIG=raspberrypicm5io_defconfig

@@ -1,8 +1,11 @@
 config BR2_PACKAGE_CM5_HOME
-    bool "cm5-home"
-    depends on BR2_PACKAGE_QT6BASE_GUI
-    depends on BR2_PACKAGE_QT6MULTIMEDIA
-    select BR2_PACKAGE_QT6DECLARATIVE
-    select BR2_PACKAGE_QT6BASE_NETWORK
-    help
-      Retro Arcade Jellyfin Qt Quick media client prototype.
+	bool "cm5-home"
+	# qt6multimedia selects qt6base-gui and qt6base-network.
+	depends on BR2_PACKAGE_QT6MULTIMEDIA
+	select BR2_PACKAGE_QT6DECLARATIVE
+	select BR2_PACKAGE_QT6DECLARATIVE_QUICK
+	help
+	  Retro Arcade Jellyfin Qt Quick media client.
+
+comment "cm5-home needs qt6multimedia"
+	depends on !BR2_PACKAGE_QT6MULTIMEDIA
