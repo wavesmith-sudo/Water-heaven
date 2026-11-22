@@ -5,6 +5,7 @@
 #include <QSettings>
 #include <QUrl>
 #include <QVariantList>
+#include <QVariantMap>
 
 // Jellyfin client for the Retro Arcade home UI.
 //
@@ -51,7 +52,10 @@ public:
     Q_INVOKABLE void continueWatching();
     Q_INVOKABLE void browseEpisodes(const QString &seriesId);
     Q_INVOKABLE QString imageSource(const QString &itemId) const;
-    Q_INVOKABLE QString playbackUrl(const QString &itemId, const QString &type) const;
+    // Asks the server how this device should play the item (POST /Items/{id}/PlaybackInfo with
+    // the CM5 device profile). Emits playbackReady or playbackFailed. allowDirect=false forces a
+    // server transcode; the player uses it as the fallback when direct play fails on the device.
+    Q_INVOKABLE void requestPlayback(const QString &itemId, const QString &type, bool allowDirect = true);
 
     // Playback state reporting (Jellyfin /Sessions/Playing*). positionMs is the player position.
     Q_INVOKABLE void reportPlaybackStart(const QString &itemId, qint64 positionMs);
@@ -72,6 +76,10 @@ signals:
     void busyChanged();
     void loggedIn();
     void deviceIdChanged();
+    // info: itemId, url, method (DirectPlay|DirectStream|Transcode), mediaSourceId, playSessionId,
+    // container, transcodeReasons. The url carries the token: never log it.
+    void playbackReady(const QVariantMap &info);
+    void playbackFailed(const QString &itemId, const QString &message);
 
 private:
     enum class ItemsMode { Library, Episodes };
@@ -82,6 +90,7 @@ private:
     void fetchItems(const QString &pathAndQuery, ItemsMode mode);
     void postSession(const QString &path, const QString &itemId, qint64 positionMs, bool paused);
     bool requireSignIn();
+    void stopTranscode();
 
     QSettings m_settings;
     QNetworkAccessManager m_net;
@@ -92,4 +101,7 @@ private:
     QVariantList m_items;
     bool m_busy = false;
     quint64 m_itemsGeneration = 0; // drops stale replies when the user navigates quickly
+    quint64 m_playGeneration = 0;
+    // The session being played, reported with every /Sessions/Playing* call.
+    QString m_playItemId, m_playMethod = QStringLiteral("DirectPlay"), m_playSessionId, m_mediaSourceId;
 };
