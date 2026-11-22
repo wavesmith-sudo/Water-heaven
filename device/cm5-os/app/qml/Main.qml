@@ -93,7 +93,8 @@ Window {
             spacing: 16 * root.u; anchors.verticalCenter: parent.verticalCenter
             Glyph { width: 52 * root.u; height: width; kind: "games"; color: T.magenta; anchors.verticalCenter: parent.verticalCenter }
             Text { text: "RETRO ARCADE"; color: T.text; font.pixelSize: 34 * root.u; font.bold: true; font.letterSpacing: 2; anchors.verticalCenter: parent.verticalCenter }
-            Text { visible: root.page !== "Home"; text: "/  " + (root.page === "Library" ? root.currentCategory : root.page === "Episodes" && root.currentSeries ? root.currentSeries.name : root.page); color: T.muted; font.pixelSize: 28 * root.u; anchors.verticalCenter: parent.verticalCenter }
+            Text { visible: root.page !== "Home"; text: "/  " + (root.page === "Library" ? root.currentCategory : root.page === "Episodes" && root.currentSeries ? root.currentSeries.name
+                                     : root.page === "Games" ? "Retro Games" + (gamesPage.title ? "  /  " + gamesPage.title : "") : root.page); color: T.muted; font.pixelSize: 28 * root.u; anchors.verticalCenter: parent.verticalCenter }
         }
         Row {
             anchors { right: parent.right; verticalCenter: parent.verticalCenter }
@@ -261,13 +262,11 @@ Window {
     }
 
     // ---- Games ------------------------------------------------------------------
-    Column {
+    GamesPage {
+        id: gamesPage
+        u: root.u
         visible: root.page === "Games"
-        anchors.centerIn: parent
-        spacing: 16 * root.u
-        Glyph { width: 140 * root.u; height: width; kind: "games"; color: T.yellow; anchors.horizontalCenter: parent.horizontalCenter }
-        Text { text: "RETRO GAMES"; color: T.yellow; font.pixelSize: 44 * root.u; font.bold: true; anchors.horizontalCenter: parent.horizontalCenter }
-        Text { text: "RetroArch integration is a future milestone."; color: T.text; font.pixelSize: 26 * root.u; anchors.horizontalCenter: parent.horizontalCenter }
+        anchors { left: parent.left; right: parent.right; top: header.bottom; bottom: hints.top; leftMargin: 48 * root.u; rightMargin: 48 * root.u; topMargin: 24 * root.u; bottomMargin: 16 * root.u }
     }
 
     // ---- Player -----------------------------------------------------------------
@@ -291,7 +290,8 @@ Window {
         visible: root.page !== "Player"
         anchors { horizontalCenter: parent.horizontalCenter; bottom: parent.bottom; bottomMargin: 36 * root.u }
         scale: root.u; transformOrigin: Item.Bottom
-        hints: root.page === "Settings"
+        hints: root.page === "Games" ? gamesPage.hints
+               : root.page === "Settings"
                ? [{key: "▲ ▼ ◀ ▶", label: "Move"}, {key: "Esc", label: "Back", color: "#e0303c"}]
                : [{key: "◀ ▶", label: "Navigate"}, {key: "A", label: "Select", color: T.ok}, {key: "B", label: "Back", color: "#e0303c"}]
     }
@@ -307,6 +307,7 @@ Window {
         focus: true
         Keys.onPressed: function(e) {
             if (root.page === "Settings") return
+            if (root.page === "Games" && gamesPage.handleKey(e.key)) { e.accepted = true; return }
             if (e.key === Qt.Key_Escape || e.key === Qt.Key_Backspace || e.key === Qt.Key_Back) { root.back(); e.accepted = true; return }
             if (root.page === "Player") {
                 const pv = playerLoader.status === Loader.Ready ? playerLoader.item : null

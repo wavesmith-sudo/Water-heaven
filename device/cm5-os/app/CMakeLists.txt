@@ -12,6 +12,7 @@ find_package(Qt6 6.4 REQUIRED COMPONENTS Core Gui Qml Quick Network Multimedia)
 add_library(cm5-home-core STATIC
     cloudclient.cpp cloudclient.h
     jellyfinclient.cpp jellyfinclient.h
+    gamescores.cpp gamescores.h
     jellyfinimageprovider.cpp jellyfinimageprovider.h)
 target_include_directories(cm5-home-core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(cm5-home-core PUBLIC Qt6::Core Qt6::Gui Qt6::Qml Qt6::Quick Qt6::Network)
@@ -38,4 +39,8 @@ if(CM5_HOME_BUILD_TESTS)
         BACKEND_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../../../services/backend")
     add_test(NAME tst_cloudclient COMMAND tst_cloudclient)
     set_tests_properties(tst_cloudclient PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
+    add_executable(tst_gamescores tests/tst_gamescores.cpp)
+    target_link_libraries(tst_gamescores PRIVATE cm5-home-core Qt6::Test)
+    add_test(NAME tst_gamescores COMMAND tst_gamescores)
 endif()
