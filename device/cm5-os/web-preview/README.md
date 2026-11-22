@@ -15,11 +15,18 @@ The page is public: anyone with the link can open it. It contains only the demo 
 
 ## Deploy
 
-`.github/workflows/web-preview.yml` builds on pushes that touch the app or this folder and
-deploys to the Cloudflare Pages project `retro-arcade-preview` when the repository has the
-secrets `CLOUDFLARE_API_TOKEN` (an API token with **Account → Cloudflare Pages → Edit**) and
-`CLOUDFLARE_ACCOUNT_ID`. The run summary prints the URL. The production URL follows `main`;
-other branches get `<branch>.retro-arcade-preview.pages.dev`.
+`.github/workflows/web-preview.yml` builds on pushes that touch the app or this folder. Qt for
+WebAssembly is built in GitHub Actions only; Cloudflare just serves the result.
+
+**Cloudflare Workers Builds (Git-connected, what we use).** Each push build replaces the
+generated branch `web-preview-site` with `public/` (the site) and `cloudflare/wrangler.jsonc`.
+In the Cloudflare Worker `water-heaven`: build command empty, deploy command
+`npx wrangler deploy`, root directory `/`, production branch `web-preview-site`. The Worker
+name must match `"name"` in `cloudflare/wrangler.jsonc`.
+
+**Or Cloudflare Pages via Actions.** Add repository secrets `CLOUDFLARE_API_TOKEN`
+(Account → Cloudflare Pages → Edit) and `CLOUDFLARE_ACCOUNT_ID`; the job then deploys to the
+Pages project `retro-arcade-preview` and prints the URL in the run summary.
 
 ## Check locally with desktop Qt
 
