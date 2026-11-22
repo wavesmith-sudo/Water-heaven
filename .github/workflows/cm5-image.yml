@@ -6,6 +6,8 @@ name: CM5 image (Buildroot)
 # run of this workflow on the same branch continues from there. Re-run until it goes green.
 #
 # Start it from the Actions tab ("Run workflow"), or by pushing to a branch named image-build/*.
+# A failed build is saved too. After fixing a package, re-run with `dirclean` naming it, or with
+# `clean` when the fix changes the Buildroot config (Buildroot does not rebuild on config changes).
 on:
   workflow_dispatch:
     inputs:
@@ -13,6 +15,10 @@ on:
         description: Ignore any saved partial build and start from scratch
         type: boolean
         default: false
+      dirclean:
+        description: Space-separated Buildroot packages to rebuild when resuming (e.g. "cm5-home")
+        type: string
+        default: ""
   push:
     branches: ['image-build/**']
 
@@ -88,6 +94,17 @@ jobs:
       - name: Configure (fails if Kconfig drops a requested symbol)
         run: bash device/cm5-os/scripts/configure.sh "$WORK/buildroot" "${{ steps.lock.outputs.base }}"
 
+      - name: Clean selected packages
+        if: inputs.dirclean != ''
+        env:
+          PACKAGES: ${{ inputs.dirclean }}
+        run: |
+          cd "$WORK/buildroot"
+          for p in $PACKAGES; do
+            case "$p" in *[!a-z0-9._-]*) echo "bad package name: $p"; exit 1 ;; esac
+            make BR2_EXTERNAL="$GITHUB_WORKSPACE/device/cm5-os/br2-external" "$p-dirclean"
+          done
+
       - name: Build
         id: build
         run: |
@@ -98,7 +115,9 @@ jobs:
             > "$WORK/build.log" 2>&1
           status=$?
           set -e
-          tail -n 80 "$WORK/build.log"
+          # The log artifact can be hard to reach; print every error line and a long tail here.
+          grep -n -E "(error|Error)[: ]" "$WORK/build.log" | grep -v -E "Werror|error\.(c|h|o)|-error" | tail -n 40 || true
+          tail -n 150 "$WORK/build.log"
           df -h /mnt
           if [ "$status" = 124 ] || [ "$status" = 130 ]; then
             echo "result=partial" >> "$GITHUB_OUTPUT"
@@ -118,7 +137,7 @@ jobs:
           key: br-dl-${{ steps.lock.outputs.tag }}-${{ hashFiles('device/cm5-os/br2-external/configs/*') }}-${{ github.run_id }}
 
       - name: Pack partial build
-        if: steps.build.outputs.result == 'partial'
+        if: steps.build.outputs.result == 'partial' || steps.build.outputs.result == 'failed'
         run: |
           cd "$WORK/buildroot"
           # Stay under the 10 GB cache limit: for packages that are completely installed, keep
@@ -134,7 +153,7 @@ jobs:
           ls -lh "$WORK/output.tar.zst"
 
       - name: Save partial build
-        if: steps.build.outputs.result == 'partial'
+        if: steps.build.outputs.result == 'partial' || steps.build.outputs.result == 'failed'
         uses: actions/cache/save@v4
         with:
           path: /mnt/cm5/output.tar.zst
