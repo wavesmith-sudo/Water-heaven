@@ -1,7 +1,10 @@
-fastapi>=0.115,<1
-uvicorn[standard]>=0.30,<1
-sqlalchemy>=2.0,<3
-psycopg[binary]>=3.2,<4
-httpx>=0.27,<1
-pydantic-settings>=2.4,<3
-pytest>=8,<10
+# Runtime dependencies, pinned for reproducible builds (Milestone 0).
+# Update deliberately: bump, run `bash scripts/verify.sh`, regenerate docs/openapi.json if it changes.
+fastapi==0.165.0
+starlette==1.10.0
+pydantic==2.14.4
+pydantic-settings==2.16.3
+uvicorn[standard]==0.54.0
+sqlalchemy==2.1.9
+psycopg[binary]==3.3.9
+httpx==0.28.1

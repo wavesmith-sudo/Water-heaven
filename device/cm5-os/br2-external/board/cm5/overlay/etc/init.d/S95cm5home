@@ -1,17 +1,33 @@
 #!/bin/sh
-case "$1" in
-  start)
-    export QT_QPA_PLATFORM=eglfs
-    export QT_QUICK_BACKEND=software
+# Starts the Retro Arcade home screen. Settings come from /etc/default/cm5-home.
+PIDFILE=/var/run/cm5-home.pid
+LOG=/var/log/cm5-home.log
+
+start() {
+    QT_QPA_PLATFORM=eglfs
+    QT_QPA_EGLFS_INTEGRATION=eglfs_kms
+    [ -r /etc/default/cm5-home ] && . /etc/default/cm5-home
+    export QT_QPA_PLATFORM QT_QPA_EGLFS_INTEGRATION
+    [ -n "$QT_QUICK_BACKEND" ] && export QT_QUICK_BACKEND
+    [ -n "$QT_QPA_EGLFS_KMS_CONFIG" ] && export QT_QPA_EGLFS_KMS_CONFIG
     export XDG_RUNTIME_DIR=/run/cm5-home
     mkdir -p "$XDG_RUNTIME_DIR"
     chmod 0700 "$XDG_RUNTIME_DIR"
-    /usr/bin/cm5-home >/var/log/cm5-home.log 2>&1 &
-    echo $! >/var/run/cm5-home.pid
-    ;;
-  stop)
-    if [ -f /var/run/cm5-home.pid ]; then kill "$(cat /var/run/cm5-home.pid)" 2>/dev/null || true; rm -f /var/run/cm5-home.pid; fi
-    ;;
-  restart) "$0" stop; "$0" start ;;
+    [ -f "$LOG" ] && mv -f "$LOG" "$LOG.1"
+    /usr/bin/cm5-home >"$LOG" 2>&1 &
+    echo $! >"$PIDFILE"
+}
+
+stop() {
+    if [ -f "$PIDFILE" ]; then
+        kill "$(cat "$PIDFILE")" 2>/dev/null || true
+        rm -f "$PIDFILE"
+    fi
+}
+
+case "$1" in
+  start) start ;;
+  stop) stop ;;
+  restart) stop; sleep 1; start ;;
   *) echo "Usage: $0 {start|stop|restart}"; exit 1 ;;
 esac

@@ -1,3 +1,28 @@
+# Retro Arcade Media Center
+
+CM5-based TV media dongle: Buildroot OS, a Qt 6 "Retro Arcade" home screen that browses and plays
+from Jellyfin, and a FastAPI cloud backend for device settings and feature flags.
+
+![Home screen](docs/screenshots/home.png)
+
+| Path | What |
+|---|---|
+| `device/cm5-os/app` | Qt 6 / QML home screen and Jellyfin client |
+| `device/cm5-os/br2-external` | Buildroot external tree, config fragment, init script |
+| `services/backend` | FastAPI cloud API (devices, settings, features) |
+| `hardware/enclosure-v1.2` | Enclosure CAD (fit-check only) |
+| `docs/` | Architecture, API contract (`openapi.json`), security, plan, acceptance |
+
+```sh
+bash scripts/verify.sh        # backend tests
+bash scripts/verify.sh --qt   # plus Qt build, unit tests and QML smoke test
+```
+
+Status: see `CLAUDE.md`, `docs/MEDIA_CENTER.md` and `TEST_RESULTS.md`. Nothing here has been built
+into a CM5 image or tested on hardware yet.
+
+---
+
 # Retro Arcade — Claude Handoff v0.3
 
 Includes Buildroot CM5 OS starter, Qt 6 Retro Arcade media center source, cloud backend, CAD references, and engineering documentation.
