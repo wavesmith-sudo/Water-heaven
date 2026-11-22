@@ -3,12 +3,12 @@
 Read `AUDIT.md`, `docs/MEDIA_CENTER.md`, `docs/IMPLEMENTATION_PLAN.md`, and `docs/SECURITY.md` first.
 
 ## Current delivery
-This repository contains the Buildroot OS starter, a Qt 6 Retro Arcade media center (Jellyfin login, library and episode browsing, direct play with progress sync), a FastAPI cloud backend, hardware enclosure references, and verification scripts. The Qt app builds and passes unit and QML smoke tests on desktop Qt 6.4; the Buildroot fragment resolves against the pinned release. **No CM5 OS image has been built or hardware tested.** Do not claim production readiness.
+This repository contains the Buildroot OS starter, a Qt 6 Retro Arcade media center (Jellyfin login, library and episode browsing, direct play with progress sync), a FastAPI cloud backend, hardware enclosure references, and verification scripts. The Qt app builds and passes unit and QML smoke tests on desktop Qt 6.4; the Buildroot fragment resolves against the pinned release. The full CM5 SD card image builds on GitHub Actions (`.github/workflows/cm5-image.yml`). **It has not been booted or tested on hardware.** Do not claim production readiness.
 
 Run `bash scripts/verify.sh --qt` before pushing. If the backend API changes, regenerate `docs/openapi.json` with `services/backend/scripts/export_openapi.py`.
 
 ## Prioritized tasks
-1. Run the full Buildroot build at the pinned release (`device/cm5-os/toolchain.lock`) and fix compile errors; verify the Qt Multimedia GStreamer backend on target.
+1. Boot the built image on the CM5-NANO-B and verify the Qt Multimedia GStreamer backend on target.
 2. Jellyfin client: PlaybackInfo negotiation/transcoding, removing the token from the stream URL, secure token storage, seasons view. (Header auth, authenticated artwork, progress sync and episode browsing are done.)
 3. Cloud: user accounts and per-user device ownership, an approval dashboard for pairing codes, secure on-device credential storage. (Pairing flow, revocation, token rotation and migrations are done.)
 4. Test HDMI audio/video and remote input on the CM5-NANO-B.
