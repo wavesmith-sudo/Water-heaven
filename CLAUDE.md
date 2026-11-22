@@ -10,7 +10,7 @@ Run `bash scripts/verify.sh --qt` before pushing. If the backend API changes, re
 ## Prioritized tasks
 1. Boot the built image on the CM5-NANO-B and verify the Qt Multimedia GStreamer backend on target.
 2. Jellyfin client: PlaybackInfo negotiation/transcoding, removing the token from the stream URL, secure token storage, seasons view. (Header auth, authenticated artwork, progress sync and episode browsing are done.)
-3. Implement end-to-end device pairing to the cloud backend (pairing code, revocation); feed the cloud-issued device id into the Jellyfin client.
+3. Cloud: user accounts and per-user device ownership, an approval dashboard for pairing codes, secure on-device credential storage. (Pairing flow, revocation, token rotation and migrations are done.)
 4. Test HDMI audio/video and remote input on the CM5-NANO-B.
 5. Implement dashboard, RetroArch integration, secure OTA and tests.
 

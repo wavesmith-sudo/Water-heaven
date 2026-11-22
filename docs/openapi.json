@@ -57,6 +57,62 @@
         "title": "Heartbeat",
         "type": "object"
       },
+      "PairingApprove": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          }
+        },
+        "title": "PairingApprove",
+        "type": "object"
+      },
+      "PairingPoll": {
+        "properties": {
+          "device_code": {
+            "maxLength": 128,
+            "minLength": 20,
+            "title": "Device Code",
+            "type": "string"
+          }
+        },
+        "required": [
+          "device_code"
+        ],
+        "title": "PairingPoll",
+        "type": "object"
+      },
+      "PairingStart": {
+        "properties": {
+          "device_name": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Device Name",
+            "type": "string"
+          },
+          "firmware": {
+            "default": "unknown",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Firmware",
+            "type": "string"
+          }
+        },
+        "required": [
+          "device_name"
+        ],
+        "title": "PairingStart",
+        "type": "object"
+      },
       "SettingsPatch": {
         "properties": {
           "audio_output": {
@@ -154,7 +210,7 @@
   },
   "info": {
     "title": "Retro Arcade Cloud API",
-    "version": "0.1.0"
+    "version": "0.2.0"
   },
   "openapi": "3.1.0",
   "paths": {
@@ -202,7 +258,7 @@
         "summary": "List Devices"
       },
       "post": {
-        "description": "Prototype provisioning: admin manually registers a device and securely transfers token.",
+        "description": "Manual provisioning: prefer the pairing flow. The token is shown once; transfer it securely.",
         "operationId": "register_device_api_v1_admin_devices_post",
         "parameters": [
           {
@@ -253,6 +309,60 @@
           }
         },
         "summary": "Register Device"
+      }
+    },
+    "/api/v1/admin/devices/{device_id}/revoke": {
+      "post": {
+        "description": "Permanently disables the device's token. The device must pair again.",
+        "operationId": "revoke_device_api_v1_admin_devices__device_id__revoke_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "device_id",
+            "required": true,
+            "schema": {
+              "title": "Device Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-admin-key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Admin-Key"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Revoke Device"
       }
     },
     "/api/v1/admin/devices/{device_id}/settings": {
@@ -425,6 +535,127 @@
         "summary": "Jellyfin Status"
       }
     },
+    "/api/v1/admin/pairing": {
+      "get": {
+        "description": "Pending requests, for an admin UI. User codes are stored hashed, so only names and times are listed.",
+        "operationId": "pairing_pending_api_v1_admin_pairing_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "x-admin-key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Admin-Key"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Pairing Pending",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/api/v1/admin/pairing/{user_code}/approve": {
+      "post": {
+        "operationId": "pairing_approve_api_v1_admin_pairing__user_code__approve_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_code",
+            "required": true,
+            "schema": {
+              "title": "User Code",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "x-admin-key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Admin-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/PairingApprove"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Body"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Pairing Approve",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
     "/api/v1/device/bootstrap": {
       "get": {
         "operationId": "bootstrap_api_v1_device_bootstrap_get",
@@ -521,6 +752,138 @@
           }
         },
         "summary": "Heartbeat"
+      }
+    },
+    "/api/v1/device/token/rotate": {
+      "post": {
+        "description": "Issues a new token and invalidates the one used for this request.",
+        "operationId": "rotate_token_api_v1_device_token_rotate_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "authorization",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Rotate Token"
+      }
+    },
+    "/api/v1/pairing/poll": {
+      "post": {
+        "operationId": "pairing_poll_api_v1_pairing_poll_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PairingPoll"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "202": {
+            "description": "authorization_pending"
+          },
+          "404": {
+            "description": "Not Found"
+          },
+          "410": {
+            "description": "expired_token"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Pairing Poll",
+        "tags": [
+          "pairing"
+        ]
+      }
+    },
+    "/api/v1/pairing/start": {
+      "post": {
+        "operationId": "pairing_start_api_v1_pairing_start_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PairingStart"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Pairing Start",
+        "tags": [
+          "pairing"
+        ]
       }
     },
     "/health": {

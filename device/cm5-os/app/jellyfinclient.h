@@ -22,7 +22,7 @@ class JellyfinClient : public QObject {
     Q_PROPERTY(bool signedIn READ signedIn NOTIFY connectionChanged)
     Q_PROPERTY(QString userName READ userName NOTIFY connectionChanged)
     Q_PROPERTY(QString userId READ userId NOTIFY connectionChanged)
-    Q_PROPERTY(QString deviceId READ deviceId CONSTANT)
+    Q_PROPERTY(QString deviceId READ deviceId NOTIFY deviceIdChanged)
     Q_PROPERTY(QVariantList items READ items NOTIFY itemsChanged)
     Q_PROPERTY(QString error READ error NOTIFY errorChanged)
     Q_PROPERTY(bool busy READ busy NOTIFY busyChanged)
@@ -36,7 +36,9 @@ public:
     bool signedIn() const;
     QString userName() const { return m_userName; }
     QString userId() const { return m_userId; }
-    QString deviceId() const { return m_deviceId; }
+    QString deviceId() const;
+    // Use the cloud-issued id once the device is paired; empty restores the local random id.
+    void setDeviceId(const QString &id);
     QVariantList items() const { return m_items; }
     QString error() const { return m_error; }
     bool busy() const { return m_busy; }
@@ -69,6 +71,7 @@ signals:
     void errorChanged();
     void busyChanged();
     void loggedIn();
+    void deviceIdChanged();
 
 private:
     enum class ItemsMode { Library, Episodes };
@@ -82,9 +85,10 @@ private:
 
     QSettings m_settings;
     QNetworkAccessManager m_net;
-    mutable QMutex m_authLock; // guards m_server and m_token
-    QString m_server, m_token;
-    QString m_userId, m_userName, m_deviceId, m_error;
+    mutable QMutex m_authLock; // guards m_server, m_token and m_deviceId
+    QString m_server, m_token, m_deviceId;
+    QString m_localDeviceId;
+    QString m_userId, m_userName, m_error;
     QVariantList m_items;
     bool m_busy = false;
     quint64 m_itemsGeneration = 0; // drops stale replies when the user navigates quickly

@@ -25,6 +25,12 @@ Screenshots are from the desktop build (Qt 6.4, offscreen, 1920×1080) against
 - Player: OK pause/play, Left/Right seek 10 s, media keys, Back stops and reports position.
   The player is created on demand, so the home UI still starts if the multimedia backend is broken.
 - Settings page reachable entirely by D-pad (Up/Down between fields, OK to connect, Esc/Back to leave).
+- **Cloud pairing** (Settings → Arcade Cloud): shows a pairing code, polls until approved, stores
+  the device token, then fetches bootstrap settings and feature flags and sends a heartbeat every
+  5 minutes. Tiles for features the cloud disables are hidden; offline devices keep their last
+  settings. A revoked device returns to "not paired". Once paired, Jellyfin uses the cloud device id.
+
+  ![Pairing code](screenshots/pairing.png)
 - Server URL validation (http/https only, no user-info), base path kept for reverse proxies,
   token dropped whenever the server changes, session-expired (401) handling.
 
@@ -40,7 +46,8 @@ Screenshots are from the desktop build (Qt 6.4, offscreen, 1920×1080) against
 - No seasons view (episodes are listed flat per series), no music-focused UI, search, favourites or profiles.
 - Text entry needs a TV on-screen keyboard; today the Settings fields require a keyboard.
 - Remote HID mapping beyond keyboard-equivalent keys (arrows, Enter, Esc, media keys) is not implemented.
-- The app still authenticates directly to Jellyfin; it does not use the cloud device-authorization gateway.
+- The app still authenticates directly to Jellyfin; it does not use the cloud as an authorization gateway.
+- Cloud device token storage is QSettings (prototype); the bootstrap `theme` setting is read but only the Retro Arcade theme exists.
 
 ## Build and test on a desktop
 ```sh

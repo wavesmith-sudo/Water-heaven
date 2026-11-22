@@ -47,11 +47,30 @@ JellyfinClient::JellyfinClient(QObject *parent)
     // A stable, per-installation device id. Jellyfin uses it to track sessions and
     // revoke devices, so it must not be shared between units (the v0.3 prototype
     // hardcoded "cm5-prototype"). Replace with the cloud-provisioned id once pairing lands.
-    m_deviceId = m_settings.value("deviceId").toString();
-    if (m_deviceId.isEmpty()) {
-        m_deviceId = QUuid::createUuid().toString(QUuid::WithoutBraces);
-        m_settings.setValue("deviceId", m_deviceId);
+    m_localDeviceId = m_settings.value("deviceId").toString();
+    if (m_localDeviceId.isEmpty()) {
+        m_localDeviceId = QUuid::createUuid().toString(QUuid::WithoutBraces);
+        m_settings.setValue("deviceId", m_localDeviceId);
     }
+    m_deviceId = m_localDeviceId;
+}
+
+QString JellyfinClient::deviceId() const
+{
+    QMutexLocker lock(&m_authLock);
+    return m_deviceId;
+}
+
+void JellyfinClient::setDeviceId(const QString &id)
+{
+    const QString next = id.isEmpty() ? m_localDeviceId : id;
+    {
+        QMutexLocker lock(&m_authLock);
+        if (next == m_deviceId)
+            return;
+        m_deviceId = next;
+    }
+    emit deviceIdChanged();
 }
 
 QString JellyfinClient::server() const
@@ -120,16 +139,17 @@ void JellyfinClient::setBusy(bool b)
 
 QString JellyfinClient::authorizationHeader() const
 {
-    QString token;
+    QString token, deviceId;
     {
         QMutexLocker lock(&m_authLock);
         token = m_token;
+        deviceId = m_deviceId;
     }
     QString device = headerSafe(QSysInfo::machineHostName());
     if (device.isEmpty())
         device = QStringLiteral("CM5");
     QString h = QStringLiteral("MediaBrowser Client=\"%1\", Device=\"%2\", DeviceId=\"%3\", Version=\"%4\"")
-                    .arg(QLatin1String(ClientName), device, headerSafe(m_deviceId), QLatin1String(ClientVersion));
+                    .arg(QLatin1String(ClientName), device, headerSafe(deviceId), QLatin1String(ClientVersion));
     if (!token.isEmpty())
         h += QStringLiteral(", Token=\"%1\"").arg(headerSafe(token));
     return h;
@@ -314,12 +334,12 @@ QString JellyfinClient::imageSource(const QString &itemId) const
 
 QString JellyfinClient::playbackUrl(const QString &itemId, const QString &type) const
 {
-    QString token;
-    QString base;
+    QString token, base, deviceId;
     {
         QMutexLocker lock(&m_authLock);
         token = m_token;
         base = m_server;
+        deviceId = m_deviceId;
     }
     if (itemId.isEmpty() || token.isEmpty())
         return {};
@@ -328,7 +348,7 @@ QString JellyfinClient::playbackUrl(const QString &itemId, const QString &type) 
     // place the token travels as a query parameter. Never log it.
     QUrlQuery q;
     q.addQueryItem("static", "true");
-    q.addQueryItem("DeviceId", m_deviceId);
+    q.addQueryItem("DeviceId", deviceId);
     q.addQueryItem("api_key", token);
     const QString kind = type == "Audio" ? QStringLiteral("Audio") : QStringLiteral("Videos");
     return base + "/" + kind + "/" + QUrl::toPercentEncoding(itemId) + "/stream?" + q.toString(QUrl::FullyEncoded);
