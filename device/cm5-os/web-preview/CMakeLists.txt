@@ -19,6 +19,7 @@ if(TARGET Qt6::Multimedia)
 endif()
 
 if(EMSCRIPTEN)
-    # Static Qt: link the QML plugins the device QML imports (QtQuick, QtMultimedia).
-    qt_import_qml_plugins(cm5-home-preview PATH_TO_SCAN ${APP_DIR}/qml)
+    # Static Qt: link the QML plugins the device QML imports. The scanner only reads QML under
+    # this directory, so qml_imports.qml repeats the device QML's imports.
+    qt_import_qml_plugins(cm5-home-preview)
 endif()
