@@ -10,8 +10,8 @@ Host: Ubuntu 24.04 container, Python 3.13, Qt 6.4.2 (distro packages), GStreamer
 | Qt unit tests vs fake Jellyfin | `ctest` in the build dir | **18 passed** |
 | Qt CloudClient tests vs the real backend (uvicorn) | `ctest` in the build dir | **9 passed** |
 | QML load + scripted navigation | `CM5_HOME_SMOKE_MS=… cm5-home` (offscreen) | PASS, 0 QML warnings |
-| Buildroot Kconfig resolution | `device/cm5-os/scripts/configure.sh` on 2026.02.3 | **45/45** fragment symbols applied (v0.3 fragment: 8/15) |
-| Buildroot full image build | `.github/workflows/cm5-image.yml` | In progress on GitHub Actions (resumable job) |
+| Buildroot Kconfig resolution | `device/cm5-os/scripts/configure.sh` on 2026.02.3 | **46/46** fragment symbols applied (v0.3 fragment: 8/15) |
+| Buildroot full image build | `.github/workflows/cm5-image.yml` | First run reached qt6multimedia (~3 h) and found a missing QtConcurrent dependency, now fixed; re-running |
 | Docker Compose stack | — | NOT RUN |
 | Real Jellyfin server, playback of real media | — | NOT RUN (fake server only; playback path exercised up to the error overlay) |
 | CM5-NANO-B hardware, HDMI, remote | — | NOT RUN |

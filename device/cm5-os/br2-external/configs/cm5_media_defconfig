@@ -30,6 +30,9 @@ BR2_PACKAGE_QT6DECLARATIVE_QUICK=y
 BR2_PACKAGE_QT6MULTIMEDIA=y
 BR2_PACKAGE_QT6MULTIMEDIA_ALSA=y
 BR2_PACKAGE_QT6MULTIMEDIA_GSTREAMER=y
+# The GStreamer plugin includes QtConcurrent, but Buildroot 2026.02.3 only selects it for the
+# ffmpeg plugin. Without this, qt6multimedia fails: "QtConcurrent/QtConcurrentRun: No such file".
+BR2_PACKAGE_QT6BASE_CONCURRENT=y
 BR2_PACKAGE_DEJAVU=y
 
 # --- TLS for HTTPS to Jellyfin and the cloud API

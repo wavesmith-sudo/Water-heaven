@@ -13,7 +13,7 @@ git clone --branch 2026.02.3 https://gitlab.com/buildroot.org/buildroot.git
 `configure.sh` applies the base defconfig, merges `br2-external/configs/cm5_media_defconfig`, runs
 `olddefconfig`, then `scripts/check_config.py` fails if Kconfig dropped any requested symbol.
 
-Result on 2026-11-21: **45/45 fragment symbols applied**. For comparison, the v0.3 fragment on
+Result on 2026-11-21: **46/46 fragment symbols applied**. For comparison, the v0.3 fragment on
 `raspberrypi5_defconfig` applied 8/15: it never enabled the `BR2_PACKAGE_QT6` menu, so Qt, Qt Quick,
 EGLFS, Qt Multimedia and the `cm5-home` package were all silently dropped, and EGLFS had no
 EGL/GBM provider. The v0.4 fragment adds Mesa (V3D + VC4), Qt Quick, OpenSSL, fonts, and a
