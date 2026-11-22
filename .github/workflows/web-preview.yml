@@ -75,6 +75,8 @@ jobs:
       - name: Build
         run: |
           QT="$RUNNER_TEMP/Qt/$QT_VERSION"
+          # aqt's all_os wasm archives lose the executable bit on the wrapper scripts.
+          chmod +x "$QT"/wasm_singlethread/bin/* "$QT"/gcc_64/bin/* "$QT"/gcc_64/libexec/* || true
           "$QT/wasm_singlethread/bin/qt-cmake" -G Ninja \
             -S device/cm5-os/web-preview -B build \
             -DCMAKE_BUILD_TYPE=MinSizeRel -DQT_HOST_PATH="$QT/gcc_64"
