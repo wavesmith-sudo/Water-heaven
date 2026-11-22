@@ -1,0 +1,126 @@
+name: Web preview (Cloudflare Pages)
+# Builds the Retro Arcade home UI for the browser (Qt for WebAssembly) with made-up demo
+# data and deploys it to Cloudflare Pages. See device/cm5-os/web-preview/README.md.
+#
+# Deploying needs two repository secrets: CLOUDFLARE_API_TOKEN (permission "Cloudflare Pages:
+# Edit") and CLOUDFLARE_ACCOUNT_ID. Without them the job still builds and stops before deploy.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, 'claude/**', 'preview/**']
+    paths:
+      - device/cm5-os/app/**
+      - device/cm5-os/web-preview/**
+      - .github/workflows/web-preview.yml
+  pull_request:
+    paths:
+      - device/cm5-os/app/**
+      - device/cm5-os/web-preview/**
+      - .github/workflows/web-preview.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: web-preview-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  QT_VERSION: 6.8.3
+  EMSDK_VERSION: 3.1.56       # the Emscripten release Qt 6.8 is built with
+  PAGES_PROJECT: retro-arcade-preview
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    env:
+      HAS_CLOUDFLARE: ${{ secrets.CLOUDFLARE_API_TOKEN != '' && secrets.CLOUDFLARE_ACCOUNT_ID != '' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check demo client matches the real Jellyfin client API
+        run: python3 device/cm5-os/web-preview/check_api.py
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Cache Qt
+        id: qt-cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/Qt
+          key: qt-wasm-${{ env.QT_VERSION }}-v1
+
+      - name: Install Qt for WebAssembly (and the matching host Qt)
+        if: steps.qt-cache.outputs.cache-hit != 'true'
+        run: |
+          python -m pip install 'aqtinstall>=3.2'
+          cd "$RUNNER_TEMP"
+          aqt list-qt all_os wasm --modules "$QT_VERSION" wasm_singlethread | tee modules.txt
+          mods=""
+          grep -qw qtmultimedia modules.txt && mods="-m qtmultimedia"
+          aqt install-qt all_os wasm "$QT_VERSION" wasm_singlethread $mods --autodesktop -O Qt
+          ls Qt/"$QT_VERSION"
+
+      - uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: ${{ env.EMSDK_VERSION }}
+          actions-cache-folder: emsdk-cache
+
+      - name: Install ffmpeg
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg ninja-build
+
+      - name: Build
+        run: |
+          QT="$RUNNER_TEMP/Qt/$QT_VERSION"
+          "$QT/wasm_singlethread/bin/qt-cmake" -G Ninja \
+            -S device/cm5-os/web-preview -B build \
+            -DCMAKE_BUILD_TYPE=MinSizeRel -DQT_HOST_PATH="$QT/gcc_64"
+          cmake --build build
+
+      - name: Assemble site
+        run: |
+          mkdir -p site
+          cp build/cm5-home-preview.js build/cm5-home-preview.wasm build/qtloader.js site/
+          cp build/*.svg site/ 2>/dev/null || true
+          python3 device/cm5-os/web-preview/shell/inject.py build/cm5-home-preview.html site/index.html
+          bash device/cm5-os/web-preview/make_demo_clip.sh site/demo-clip.mp4
+          ls -la site
+          # Cloudflare Pages rejects files over 25 MiB.
+          big=$(find site -type f -size +25M)
+          if [ -n "$big" ]; then echo "::error::Over the 25 MiB Pages file limit: $big"; exit 1; fi
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: web-preview-site
+          path: site
+          retention-days: 7
+
+      - name: Deploy to Cloudflare Pages
+        id: deploy
+        if: github.event_name != 'pull_request' && env.HAS_CLOUDFLARE == 'true'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          # Creates the Pages project on the first run; fails harmlessly once it exists.
+          preCommands: npx wrangler pages project create ${{ env.PAGES_PROJECT }} --production-branch=main || true
+          command: pages deploy site --project-name=${{ env.PAGES_PROJECT }} --branch=${{ github.ref_name }} --commit-dirty=true
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "## Web preview"
+            if [ -n "${{ steps.deploy.outputs.deployment-url }}" ]; then
+              echo "Deployed: ${{ steps.deploy.outputs.deployment-url }}"
+              echo
+              echo "Branch alias: ${{ steps.deploy.outputs.pages-deployment-alias-url }}"
+            elif [ "$HAS_CLOUDFLARE" != "true" ]; then
+              echo "Built, not deployed: add the CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID repository secrets."
+            else
+              echo "Not deployed (pull request build, or the deploy step failed)."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
