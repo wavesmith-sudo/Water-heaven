@@ -1,4 +1,5 @@
 #include "jellyfinclient.h"
+#include "playbackprofile.h"
 
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -332,37 +333,89 @@ QString JellyfinClient::imageSource(const QString &itemId) const
     return QStringLiteral("image://jellyfin/") + QString::fromLatin1(QUrl::toPercentEncoding(itemId));
 }
 
-QString JellyfinClient::playbackUrl(const QString &itemId, const QString &type) const
+void JellyfinClient::requestPlayback(const QString &itemId, const QString &type, bool allowDirect)
 {
-    QString token, base, deviceId;
-    {
-        QMutexLocker lock(&m_authLock);
-        token = m_token;
-        base = m_server;
-        deviceId = m_deviceId;
-    }
-    if (itemId.isEmpty() || token.isEmpty())
-        return {};
-    // Direct play only. PlaybackInfo negotiation / transcoding is still TODO (docs/MEDIA_CENTER.md).
-    // Qt Multimedia's MediaPlayer cannot send request headers, so this URL is the one
-    // place the token travels as a query parameter. Never log it.
-    QUrlQuery q;
-    q.addQueryItem("static", "true");
-    q.addQueryItem("DeviceId", deviceId);
-    q.addQueryItem("api_key", token);
+    if (itemId.isEmpty() || !requireSignIn())
+        return;
+    const quint64 generation = ++m_playGeneration;
     const QString kind = type == "Audio" ? QStringLiteral("Audio") : QStringLiteral("Videos");
-    return base + "/" + kind + "/" + QUrl::toPercentEncoding(itemId) + "/stream?" + q.toString(QUrl::FullyEncoded);
+    QUrlQuery q;
+    q.addQueryItem("UserId", m_userId);
+    const QJsonObject body = PlaybackProfile::playbackInfoRequest(m_userId, allowDirect);
+    auto *reply = m_net.post(request("/Items/" + QUrl::toPercentEncoding(itemId) + "/PlaybackInfo?" + q.toString(QUrl::FullyEncoded)),
+                             QJsonDocument(body).toJson(QJsonDocument::Compact));
+    connect(reply, &QNetworkReply::finished, this, [this, reply, generation, itemId, kind]() {
+        reply->deleteLater();
+        if (generation != m_playGeneration)
+            return; // the user started something else
+        const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+        if (status == 401) {
+            setCredentials({}, {}, {});
+            emit playbackFailed(itemId, tr("Session expired. Sign in again in Settings"));
+            return;
+        }
+        if (reply->error() != QNetworkReply::NoError) {
+            emit playbackFailed(itemId, tr("Playback request failed: %1").arg(reply->errorString()));
+            return;
+        }
+        QString token, base, deviceId;
+        {
+            QMutexLocker lock(&m_authLock);
+            token = m_token;
+            base = m_server;
+            deviceId = m_deviceId;
+        }
+        const auto d = PlaybackProfile::decide(QJsonDocument::fromJson(reply->readAll()).object(), base, itemId, kind,
+                                               token, deviceId);
+        if (!d.error.isEmpty()) {
+            emit playbackFailed(itemId, d.error);
+            return;
+        }
+        // Switching sources (direct play -> transcode fallback) ends the previous server session.
+        if (m_playItemId == itemId && m_playMethod == "Transcode" && m_playSessionId != d.playSessionId)
+            stopTranscode();
+        m_playItemId = itemId;
+        m_playMethod = d.method;
+        m_playSessionId = d.playSessionId;
+        m_mediaSourceId = d.mediaSourceId;
+        emit playbackReady({{"itemId", itemId},
+                            {"url", d.url},
+                            {"method", d.method},
+                            {"mediaSourceId", d.mediaSourceId},
+                            {"playSessionId", d.playSessionId},
+                            {"container", d.container},
+                            {"transcodeReasons", d.transcodeReasons}});
+    });
+}
+
+void JellyfinClient::stopTranscode()
+{
+    if (m_playSessionId.isEmpty() || !signedIn())
+        return;
+    // Tells the server to kill the ffmpeg job instead of waiting for it to time out.
+    QUrlQuery q;
+    q.addQueryItem("DeviceId", deviceId());
+    q.addQueryItem("PlaySessionId", m_playSessionId);
+    auto *reply = m_net.sendCustomRequest(request("/Videos/ActiveEncodings?" + q.toString(QUrl::FullyEncoded)), "DELETE");
+    connect(reply, &QNetworkReply::finished, reply, &QObject::deleteLater);
 }
 
 void JellyfinClient::postSession(const QString &path, const QString &itemId, qint64 positionMs, bool paused)
 {
     if (itemId.isEmpty() || !signedIn())
         return;
-    const QJsonObject body{{"ItemId", itemId},
-                           {"PositionTicks", QJsonValue(qMax<qint64>(0, positionMs) * TicksPerMs)},
-                           {"IsPaused", paused},
-                           {"CanSeek", true},
-                           {"PlayMethod", "DirectPlay"}};
+    QJsonObject body{{"ItemId", itemId},
+                     {"PositionTicks", QJsonValue(qMax<qint64>(0, positionMs) * TicksPerMs)},
+                     {"IsPaused", paused},
+                     {"CanSeek", true},
+                     {"PlayMethod", "DirectPlay"}};
+    if (itemId == m_playItemId) {
+        body["PlayMethod"] = m_playMethod;
+        if (!m_playSessionId.isEmpty())
+            body["PlaySessionId"] = m_playSessionId;
+        if (!m_mediaSourceId.isEmpty())
+            body["MediaSourceId"] = m_mediaSourceId;
+    }
     auto *reply = m_net.post(request(path), QJsonDocument(body).toJson(QJsonDocument::Compact));
     connect(reply, &QNetworkReply::finished, reply, &QObject::deleteLater);
 }
@@ -380,4 +433,13 @@ void JellyfinClient::reportPlaybackProgress(const QString &itemId, qint64 positi
 void JellyfinClient::reportPlaybackStopped(const QString &itemId, qint64 positionMs)
 {
     postSession("/Sessions/Playing/Stopped", itemId, positionMs, false);
+    if (itemId == m_playItemId) {
+        if (m_playMethod == "Transcode")
+            stopTranscode();
+        ++m_playGeneration; // a PlaybackInfo reply still in flight is no longer wanted
+        m_playItemId.clear();
+        m_playMethod = QStringLiteral("DirectPlay");
+        m_playSessionId.clear();
+        m_mediaSourceId.clear();
+    }
 }

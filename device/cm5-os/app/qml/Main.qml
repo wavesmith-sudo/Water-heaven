@@ -55,11 +55,9 @@ Window {
     }
 
     function play(item) {
-        const url = jellyfin.playbackUrl(item.id, item.type)
-        if (!url) return
+        if (!jellyfin.signedIn) return
         playerReturnPage = page
         playerLoader.playItem = item
-        playerLoader.playSource = url
         playerLoader.active = true
         page = "Player"
         keys.forceActiveFocus()
@@ -276,10 +274,8 @@ Window {
         anchors.fill: parent
         active: false
         property var playItem: null
-        property url playSource
         sourceComponent: PlayerView {
             item: playerLoader.playItem
-            source: playerLoader.playSource
             u: root.u
             onDone: root.back()
         }
