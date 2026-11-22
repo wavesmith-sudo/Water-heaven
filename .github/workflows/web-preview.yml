@@ -132,6 +132,10 @@ jobs:
       - name: Deploy to Cloudflare Pages
         id: deploy
         if: github.event_name != 'pull_request' && env.HAS_CLOUDFLARE == 'true'
+        # The site is already built and published to web-preview-site above; a Cloudflare
+        # account problem (e.g. a token without Pages: Edit) is reported in the summary instead
+        # of failing the build.
+        continue-on-error: true
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -151,7 +155,10 @@ jobs:
               echo "Branch alias: ${{ steps.deploy.outputs.pages-deployment-alias-url }}"
             elif [ "$HAS_CLOUDFLARE" != "true" ]; then
               echo "Built. Published to the web-preview-site branch for Cloudflare Workers Builds (push builds only)."
+            elif [ "${{ steps.deploy.outcome }}" = "failure" ]; then
+              echo "::warning::Cloudflare Pages deploy failed. Check that CLOUDFLARE_API_TOKEN has Account > Cloudflare Pages > Edit."
+              echo "Pages deploy failed: check the token has **Account → Cloudflare Pages → Edit** (see the Deploy step log)."
             else
-              echo "Not deployed (pull request build, or the deploy step failed)."
+              echo "Not deployed (pull request build)."
             fi
           } >> "$GITHUB_STEP_SUMMARY"
