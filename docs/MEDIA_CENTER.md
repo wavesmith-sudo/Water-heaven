@@ -13,7 +13,21 @@ Screenshots are from the desktop build (Qt 6.4, offscreen, 1920×1080) against
 - Retro Arcade theme (concept 2 in `reference/ui-six-concepts.png`): synthwave sun, skyline and
   perspective grid, neon tiles with yellow focus and scale animation, header clock and sign-in
   status, footer remote hints. Layout is authored at 1080p and scaled by window size.
-- Home tiles: Movies, TV Shows, Music, Retro Games (placeholder), Continue Watching, Settings.
+- Home tiles: Movies, TV Shows, Music, Retro Games, Continue Watching, Settings.
+- **Retro Games**: three original games built into the app (no emulator, no ROMs, no
+  recreations of existing titles), all playable with D-pad + OK + Back:
+  - *Grid Runner*: steer across five neon lanes, jump low barriers, dodge pylons, collect chips.
+  - *Orbit Shift*: move a shield round a ring and catch sparks of your colour; OK swaps colour.
+  - *Beam Router*: turn mirror tiles to route a laser to the receiver; boards are generated.
+
+  Back pauses (Back again quits, OK resumes); leaving with Home also pauses. Best scores are kept
+  per game on the device (QSettings group `games`, local only). Game rules live in plain JS
+  (`app/qml/games/*.js`) with Node unit tests; rendering is Rectangles plus a few Canvases that
+  repaint only on change, to stay cheap on the software scene graph. Not yet measured on the CM5.
+
+  | Picker | Grid Runner | Orbit Shift | Beam Router |
+  |---|---|---|---|
+  | ![](screenshots/games.png) | ![](screenshots/games-grid-runner.png) | ![](screenshots/games-orbit-shift.png) | ![](screenshots/games-beam-router.png) |
 - Jellyfin username/password login (`/Users/AuthenticateByName`), sign out (`/Sessions/Logout`).
 - Requests authenticate with `Authorization: MediaBrowser Client=…, DeviceId=…, Token=…`.
 - Per-installation random `DeviceId` (UUID), replacing the shared `cm5-prototype` id.
@@ -35,6 +49,8 @@ Screenshots are from the desktop build (Qt 6.4, offscreen, 1920×1080) against
   token dropped whenever the server changes, session-expired (401) handling.
 
 ## Critical incomplete items
+- Retro Games frame rate and input feel on the CM5 (software rendering, real remote) are untested.
+  RetroArch and legal game import remain a later milestone.
 - **Not built by Buildroot or run on the CM5.** The Kconfig fragment now resolves cleanly against
   the pinned Buildroot (see `device/cm5-os/docs/BOOT_AND_TEST.md`) but no image has been compiled.
 - Direct play only: no PlaybackInfo negotiation, codec checks, subtitles or transcoding. Files the
