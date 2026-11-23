@@ -10,5 +10,14 @@
     <file>qml/PlayerView.qml</file>
     <file>qml/ArcadeField.qml</file>
     <file>qml/ArcadeButton.qml</file>
+    <file>qml/GamesPage.qml</file>
+    <file>qml/GameHud.qml</file>
+    <file>qml/GridRunner.qml</file>
+    <file>qml/OrbitShift.qml</file>
+    <file>qml/BeamRouter.qml</file>
+    <file>qml/games/Rng.js</file>
+    <file>qml/games/RunnerLogic.js</file>
+    <file>qml/games/OrbitLogic.js</file>
+    <file>qml/games/BeamLogic.js</file>
   </qresource>
 </RCC>

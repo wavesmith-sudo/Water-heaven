@@ -33,6 +33,22 @@ Canvas {
             x.beginPath(); x.arc(s*.5, s*.5, s*.13, 0, 7); x.stroke()
             for (var k = 0; k < 8; ++k) { var a = k * Math.PI / 4; x.beginPath(); x.moveTo(s*.5 + Math.cos(a)*s*.25, s*.5 + Math.sin(a)*s*.25); x.lineTo(s*.5 + Math.cos(a)*s*.38, s*.5 + Math.sin(a)*s*.38); x.stroke() }
             x.beginPath(); x.arc(s*.5, s*.5, s*.27, 0, 7); x.stroke()
+        } else if (kind === "runner") {
+            x.beginPath(); x.moveTo(s*.08, s*.9); x.lineTo(s*.42, s*.24); x.moveTo(s*.92, s*.9); x.lineTo(s*.58, s*.24); x.stroke()
+            x.beginPath(); x.moveTo(s*.2, s*.24); x.lineTo(s*.8, s*.24); x.stroke()
+            x.beginPath(); x.moveTo(s*.36, s*.86); x.lineTo(s*.42, s*.66); x.lineTo(s*.58, s*.66); x.lineTo(s*.64, s*.86); x.closePath(); x.fill()
+            x.fillRect(s*.44, s*.4, s*.12, s*.06)
+        } else if (kind === "orbit") {
+            x.beginPath(); x.arc(s*.5, s*.5, s*.36, 0, 7); x.stroke()
+            x.beginPath(); x.arc(s*.5, s*.5, s*.1, 0, 7); x.fill()
+            x.lineWidth = Math.max(3, s * 0.13)
+            x.beginPath(); x.arc(s*.5, s*.5, s*.36, -1.25, -0.55); x.stroke()
+            x.beginPath(); x.arc(s*.32, s*.68, s*.04, 0, 7); x.fill(); x.beginPath(); x.arc(s*.68, s*.62, s*.04, 0, 7); x.fill()
+        } else if (kind === "beam") {
+            x.beginPath(); x.moveTo(s*.06, s*.2); x.lineTo(s*.2, s*.3); x.lineTo(s*.06, s*.4); x.closePath(); x.fill()
+            x.beginPath(); x.moveTo(s*.2, s*.3); x.lineTo(s*.5, s*.3); x.lineTo(s*.5, s*.7); x.lineTo(s*.84, s*.7); x.stroke()
+            rr(s*.4, s*.2, s*.2, s*.2, s*.04); x.stroke(); rr(s*.4, s*.6, s*.2, s*.2, s*.04); x.stroke()
+            x.beginPath(); x.arc(s*.88, s*.7, s*.07, 0, 7); x.fill()
         } else if (kind === "resume") {
             x.beginPath(); x.arc(s*.5, s*.5, s*.38, 0, 7); x.stroke()
             x.beginPath(); x.moveTo(s*.42, s*.34); x.lineTo(s*.66, s*.5); x.lineTo(s*.42, s*.66); x.closePath(); x.fill()
