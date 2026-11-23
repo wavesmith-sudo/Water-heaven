@@ -12,12 +12,12 @@ Item {
     Rectangle {
         id: frame
         anchors.fill: parent; anchors.margins: 8; radius: 10
-        color: card.focused ? "#2a1d4d" : "#1a1233"
+        color: card.focused ? "#15355f" : "#0c2244"
         border.width: card.focused ? 4 : 1
-        border.color: card.focused ? T.yellow : "#4d3e70"
+        border.color: card.focused ? T.yellow : "#2f5580"
         clip: true
 
-        Rectangle { id: art; anchors { left: parent.left; right: parent.right; top: parent.top; margins: 6 } height: parent.height - 64; radius: 6; color: "#120a26"
+        Rectangle { id: art; anchors { left: parent.left; right: parent.right; top: parent.top; margins: 6 } height: parent.height - 64; radius: 6; color: "#06162e"
             Text { anchors.centerIn: parent; visible: poster.status !== Image.Ready; text: (card.item.name || "?").charAt(0); color: T.magenta; font.pixelSize: 56; font.bold: true }
             Image { id: poster; anchors.fill: parent; source: card.item.image || ""; fillMode: Image.PreserveAspectCrop; asynchronous: true; sourceSize.width: 400; clip: true }
             Rectangle { // resume progress

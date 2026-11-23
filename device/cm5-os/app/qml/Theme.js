@@ -1,13 +1,13 @@
 .pragma library
-// Retro Arcade palette (reference/ui-six-concepts.png, concept 2).
-var bg = "#0d0820"
-var panel = "#1a1233"
-var panelHi = "#2a1d4d"
+// Wave Culture Media palette: blue re-theme of the Retro Arcade layout.
+var bg = "#04122a"
+var panel = "#0c2244"
+var panelHi = "#15355f"
 var cyan = "#29e8f2"
-var magenta = "#e95bff"
-var pink = "#ff3fa4"
+var magenta = "#3d9bff"
+var pink = "#5b7cff"
 var yellow = "#ffd23f"
 var text = "#ffffff"
-var muted = "#b9add6"
-var danger = "#ff8ab8"
+var muted = "#9fb8d9"
+var danger = "#ff8a9a"
 var ok = "#3fdc7c"

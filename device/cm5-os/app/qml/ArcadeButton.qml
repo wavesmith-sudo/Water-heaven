@@ -16,7 +16,7 @@ Button {
     }
     background: Rectangle {
         radius: 10 * b.u
-        color: b.activeFocus ? "#2a1a4a" : "#160d2e"
+        color: b.activeFocus ? "#12345e" : "#0a1d3a"
         border.width: b.activeFocus ? 4 : 2
         border.color: b.activeFocus ? T.yellow : T.magenta
     }

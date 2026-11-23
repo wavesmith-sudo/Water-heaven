@@ -128,7 +128,7 @@ private slots:
         const QJsonObject login = requests().first().toObject();
         QCOMPARE(login.value("path").toString(), QStringLiteral("/Users/AuthenticateByName"));
         const QString auth = login.value("authorization").toString();
-        QVERIFY(auth.startsWith("MediaBrowser Client=\"Retro Arcade\""));
+        QVERIFY(auth.startsWith("MediaBrowser Client=\"Wave Culture Media\""));
         QVERIFY(auth.contains("DeviceId=\"" + c.deviceId() + "\""));
         QVERIFY(!auth.contains("Token="));
     }
@@ -274,7 +274,7 @@ private slots:
         QVERIFY(call.value("authorization").toString().contains("Token="));
         QVERIFY(!call.value("query").toString().contains("api_key"));
         const QJsonObject body = QJsonDocument::fromJson(call.value("body").toString().toUtf8()).object();
-        QCOMPARE(body.value("DeviceProfile").toObject().value("Name").toString(), QStringLiteral("Retro Arcade CM5"));
+        QCOMPARE(body.value("DeviceProfile").toObject().value("Name").toString(), QStringLiteral("Wave Culture Media CM5"));
         QCOMPARE(body.value("EnableDirectPlay").toBool(), true);
     }
 
