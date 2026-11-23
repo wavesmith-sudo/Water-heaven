@@ -63,6 +63,19 @@ li { display: grid; grid-template-columns: 64px 1fr auto; gap: 14px; align-items
 li.is-next .pill { background: var(--sun); color: var(--sun-ink); border-color: var(--sun); }
 li.is-today .pill { background: var(--wave); color: var(--wave-ink); border-color: var(--wave); }
 li.is-past { opacity: .55; }
+.tabs { display: flex; gap: 6px; border-bottom: 1px solid var(--line); }
+.tab { font: 600 14px var(--body); padding: 10px 14px; border: 0; border-bottom: 3px solid transparent; background: none; color: var(--muted); cursor: pointer; margin-bottom: -1px; }
+.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--sun); }
+.tab:focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; }
+.panel { display: flex; flex-direction: column; gap: 28px; }
+.media { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); gap: 12px; }
+.card { display: flex; flex-direction: column; gap: 6px; padding: 16px 18px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); color: var(--ink); text-decoration: none; min-width: 0; }
+a.card:hover { border-color: var(--wave); }
+a.card:focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; }
+.card .k { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--wave); font-weight: 600; }
+.card .t { font-family: var(--display); font-weight: 500; font-size: 17px; line-height: 1.25; }
+.card .s { color: var(--muted); font-size: 13px; }
+.card.soon { opacity: .7; border-style: dashed; }
 li.is-past .t { text-decoration: line-through; text-decoration-thickness: 1px; }
 .sub { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; gap: 14px; }
 .sub p { margin: 0; color: var(--muted); max-width: 60ch; }
@@ -87,6 +100,13 @@ footer { font-size: 12px; color: var(--muted); }
     <h1>Shoot Schedule</h1>
   </header>
 
+  <div class="tabs" role="tablist" aria-label="Sections">
+    <button class="tab" role="tab" id="tab-schedule" aria-controls="panel-schedule" aria-selected="true" type="button">Schedule</button>
+    <button class="tab" role="tab" id="tab-media" aria-controls="panel-media" aria-selected="false" type="button">Media</button>
+  </div>
+
+  <div class="panel" id="panel-schedule" role="tabpanel" aria-labelledby="tab-schedule">
+
   <div class="next" id="next" hidden>
     <div class="label" id="next-label">Next shoot</div>
     <div class="what" id="next-what"></div>
@@ -109,6 +129,12 @@ footer { font-size: 12px; color: var(--muted); }
     </div>
     <div class="note" id="copy-note" role="status"></div>
   </section>
+
+  </div>
+
+  <div class="panel" id="panel-media" role="tabpanel" aria-labelledby="tab-media" hidden>
+    <div class="media" id="media-list"></div>
+  </div>
 
   <footer>All shoots are all-day. Times shown in Eastern time (Detroit).</footer>
 </div>
@@ -202,6 +228,36 @@ fetch("events.json", { cache: "no-store" }).then(r => r.json()).then(cal => {
   });
   render();
 }).catch(() => {});
+let MEDIA = [];
+function renderMedia() {
+  const box = document.getElementById("media-list");
+  box.replaceChildren();
+  for (const m of MEDIA) {
+    const el = document.createElement(m.url ? "a" : "div");
+    el.className = "card" + (m.url ? "" : " soon");
+    if (m.url) { el.href = m.url; if (/^https?:/.test(m.url)) { el.target = "_blank"; el.rel = "noopener"; } }
+    el.innerHTML = '<span class="k"></span><span class="t"></span><span class="s"></span>';
+    el.querySelector(".k").textContent = m.kind || "Link";
+    el.querySelector(".t").textContent = m.title;
+    el.querySelector(".s").textContent = m.url ? (m.subtitle || "") : (m.subtitle ? m.subtitle + " · " : "") + "Coming soon";
+    box.append(el);
+  }
+  if (!MEDIA.length) box.textContent = "No media links yet.";
+}
+fetch("media.json", { cache: "no-store" }).then(r => r.json()).then(d => { MEDIA = d.links || []; renderMedia(); }).catch(() => renderMedia());
+
+function showTab(name) {
+  for (const t of ["schedule", "media"]) {
+    document.getElementById("tab-" + t).setAttribute("aria-selected", String(t === name));
+    document.getElementById("panel-" + t).hidden = t !== name;
+  }
+}
+document.getElementById("tab-schedule").addEventListener("click", () => { location.hash = "schedule"; });
+document.getElementById("tab-media").addEventListener("click", () => { location.hash = "media"; });
+const route = () => showTab(location.hash === "#media" ? "media" : "schedule");
+addEventListener("hashchange", route);
+route();
+
 setInterval(render, 60 * 60 * 1000);
 </script>
 </body>
