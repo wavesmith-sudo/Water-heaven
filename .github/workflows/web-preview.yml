@@ -15,11 +15,13 @@ on:
     paths:
       - device/cm5-os/app/**
       - device/cm5-os/web-preview/**
+      - calendar/**
       - .github/workflows/web-preview.yml
   pull_request:
     paths:
       - device/cm5-os/app/**
       - device/cm5-os/web-preview/**
+      - calendar/**
       - .github/workflows/web-preview.yml
 
 permissions:
@@ -95,6 +97,15 @@ jobs:
           cp build/*.svg site/ 2>/dev/null || true
           python3 device/cm5-os/web-preview/shell/inject.py build/cm5-home-preview.html site/index.html
           bash device/cm5-os/web-preview/make_demo_clip.sh site/demo-clip.mp4
+          # Production calendar (calendar/, PR #7) served at /schedule/. Cloudflare reads
+          # _headers only at the site root, so its rules are appended there.
+          if [ -d calendar ]; then
+            mkdir -p site/schedule
+            cp calendar/index.html calendar/events.json calendar/production.ics site/schedule/
+            if [ -f calendar/_headers ]; then
+              cat calendar/_headers >> site/_headers
+            fi
+          fi
           ls -la site
           # Cloudflare Pages rejects files over 25 MiB.
           big=$(find site -type f -size +25M)
