@@ -43,7 +43,7 @@ Item {
     Component.onCompleted: restart()
     Timer { id: next; interval: 1600; onTriggered: game.startLevel(game.lv.level + 1) }
 
-    Rectangle { anchors.fill: parent; color: "#08041a" }
+    Rectangle { anchors.fill: parent; color: "#031024" }
 
     Item {
         id: board
@@ -64,8 +64,8 @@ Item {
                 width: game.tile; height: game.tile
                 Rectangle {
                     anchors.fill: parent; anchors.margins: 4 * game.u; radius: 10 * game.u
-                    color: cell.cursor ? "#2a1a4a" : "#140b2b"
-                    border.color: cell.cursor ? T.yellow : "#3a2a66"; border.width: cell.cursor ? 5 * game.u : 2 * game.u
+                    color: cell.cursor ? "#12345e" : "#081a35"
+                    border.color: cell.cursor ? T.yellow : "#1f4a7a"; border.width: cell.cursor ? 5 * game.u : 2 * game.u
                 }
                 Canvas {
                     id: pipe
@@ -84,8 +84,8 @@ Item {
                             for (let b = 0; b < 4; ++b) if (mask & (1 << b)) { c.beginPath(); c.moveTo(m, m); c.lineTo(ends[b][0], ends[b][1]); c.stroke() }
                         }
                         if (lit) { draw("rgba(41, 232, 242, 0.35)", s * 0.22); draw("#e9fdff", s * 0.07) }
-                        else draw("#5b4a8a", s * 0.12)
-                        c.fillStyle = lit ? T.cyan : "#7c6aa8"
+                        else draw("#3e6a99", s * 0.12)
+                        c.fillStyle = lit ? T.cyan : "#5f8fc0"
                         c.beginPath(); c.arc(m, m, s * 0.1, 0, Math.PI * 2); c.fill()
                     }
                 }
@@ -122,7 +122,7 @@ Item {
         visible: game.solved
         anchors.centerIn: board
         width: 640 * game.u; height: 150 * game.u; radius: 16 * game.u
-        color: "#160d2e"; border.color: T.cyan; border.width: 4 * game.u
+        color: "#0a1d3a"; border.color: T.cyan; border.width: 4 * game.u
         Column { anchors.centerIn: parent; spacing: 6 * game.u
             Text { anchors.horizontalCenter: parent.horizontalCenter; text: "BEAM LOCKED"; color: T.cyan; font.pixelSize: 48 * game.u; font.bold: true; font.letterSpacing: 4 }
             Text { anchors.horizontalCenter: parent.horizontalCenter; text: "+" + game.gained + "   next board…"; color: T.yellow; font.pixelSize: 26 * game.u; font.bold: true }

@@ -13,7 +13,7 @@ Item {
 
     Rectangle {
         anchors.fill: parent; radius: 14
-        color: tile.focused ? "#2a1a4a" : "#160d2e"; opacity: 0.92
+        color: tile.focused ? "#12345e" : "#0a1d3a"; opacity: 0.92
         border.width: tile.focused ? 5 : 3
         border.color: tile.focused ? T.yellow : T.cyan
     }

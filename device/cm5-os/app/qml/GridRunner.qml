@@ -46,18 +46,18 @@ Item {
     }
 
     // Sky, sun and floor
-    Rectangle { anchors.fill: parent; color: "#07030f" }
+    Rectangle { anchors.fill: parent; color: "#020812" }
     Item {
         width: parent.width; height: game.horizonY; clip: true
         Rectangle { anchors.fill: parent
-            gradient: Gradient { GradientStop { position: 0; color: "#0e0522" } GradientStop { position: 1; color: "#4a1260" } } }
+            gradient: Gradient { GradientStop { position: 0; color: "#041430" } GradientStop { position: 1; color: "#0f4a80" } } }
         Rectangle {
             width: game.height * 0.36; height: width; radius: width / 2
             anchors.horizontalCenter: parent.horizontalCenter; y: parent.height - height * 0.55
-            gradient: Gradient { GradientStop { position: 0; color: T.yellow } GradientStop { position: 0.6; color: "#ff6a5c" } GradientStop { position: 1; color: "#e0207f" } }
+            gradient: Gradient { GradientStop { position: 0; color: T.yellow } GradientStop { position: 0.6; color: "#3d9bff" } GradientStop { position: 1; color: "#1f4fd1" } }
         }
         Repeater { model: 4
-            Rectangle { required property int index; width: game.width; height: (3 + index * 3) * game.u; color: "#3a1058"
+            Rectangle { required property int index; width: game.width; height: (3 + index * 3) * game.u; color: "#0f3d6e"
                 y: game.horizonY - game.height * 0.17 + index * game.height * 0.04 } }
     }
     Canvas {
@@ -108,16 +108,16 @@ Item {
             Rectangle { // low barrier: jump it
                 visible: obj.o !== null && obj.o.kind === "barrier"
                 width: obj.lw * 0.86; height: obj.lw * 0.2; x: -width / 2; y: -height
-                radius: 4 * obj.sc; color: "#3a0f3f"; border.color: T.pink; border.width: Math.max(1, 5 * obj.sc)
+                radius: 4 * obj.sc; color: "#0f2d4a"; border.color: T.pink; border.width: Math.max(1, 5 * obj.sc)
                 Rectangle { anchors.centerIn: parent; width: parent.width * 0.8; height: Math.max(1, 3 * obj.sc); color: T.pink }
             }
             Rectangle { // tall pylon: dodge it
                 visible: obj.o !== null && obj.o.kind === "pylon"
                 width: obj.lw * 0.34; height: obj.lw * 0.95; x: -width / 2; y: -height
                 radius: 6 * obj.sc
-                gradient: Gradient { GradientStop { position: 0; color: T.yellow } GradientStop { position: 1; color: "#ff6a5c" } }
-                Rectangle { width: parent.width; height: Math.max(1, 6 * obj.sc); y: parent.height * 0.3; color: "#2b0f4d" }
-                Rectangle { width: parent.width; height: Math.max(1, 6 * obj.sc); y: parent.height * 0.55; color: "#2b0f4d" }
+                gradient: Gradient { GradientStop { position: 0; color: T.yellow } GradientStop { position: 1; color: "#3d9bff" } }
+                Rectangle { width: parent.width; height: Math.max(1, 6 * obj.sc); y: parent.height * 0.3; color: "#0b2a55" }
+                Rectangle { width: parent.width; height: Math.max(1, 6 * obj.sc); y: parent.height * 0.55; color: "#0b2a55" }
             }
             Rectangle { // data chip: collect it
                 visible: obj.o !== null && obj.o.kind === "chip"

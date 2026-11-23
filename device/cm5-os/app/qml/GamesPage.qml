@@ -108,7 +108,7 @@ Item {
                     Behavior on scale { NumberAnimation { duration: 120; easing.type: Easing.OutQuad } }
                     Rectangle {
                         anchors.fill: parent; radius: 18 * page.u
-                        color: card.focused ? "#2a1a4a" : "#160d2e"; opacity: 0.95
+                        color: card.focused ? "#12345e" : "#0a1d3a"; opacity: 0.95
                         border.width: card.focused ? 6 * page.u : 3 * page.u
                         border.color: card.focused ? T.yellow : card.modelData.color
                     }
@@ -116,7 +116,7 @@ Item {
                         id: screen
                         anchors { left: parent.left; right: parent.right; top: parent.top; margins: 22 * page.u }
                         height: 240 * page.u; radius: 12 * page.u
-                        gradient: Gradient { GradientStop { position: 0; color: "#2b0f4d" } GradientStop { position: 1; color: "#0a0618" } }
+                        gradient: Gradient { GradientStop { position: 0; color: "#0b2a55" } GradientStop { position: 1; color: "#030c1c" } }
                         border.color: card.modelData.color; border.width: 2 * page.u
                         Glyph { anchors.centerIn: parent; width: 170 * page.u; height: width; kind: card.modelData.glyph
                             color: card.focused ? T.yellow : card.modelData.color }
@@ -171,7 +171,7 @@ Item {
             visible: page.paused || (game.item && game.item.over)
             anchors.centerIn: parent
             width: 720 * page.u; height: overlayText.implicitHeight + 90 * page.u; radius: 18 * page.u
-            color: "#160d2e"; border.color: T.yellow; border.width: 5 * page.u
+            color: "#0a1d3a"; border.color: T.yellow; border.width: 5 * page.u
             Column {
                 id: overlayText
                 anchors.centerIn: parent; spacing: 14 * page.u

@@ -6,7 +6,7 @@ Window {
     visible: true
     visibility: Window.FullScreen
     width: 1920; height: 1080
-    title: "Retro Arcade Media OS"
+    title: "Wave Culture Media"
     color: T.bg
 
     // Layout is designed at 1080p and scaled, so 720p/4K panels keep proportions.
@@ -90,7 +90,7 @@ Window {
         Row {
             spacing: 16 * root.u; anchors.verticalCenter: parent.verticalCenter
             Glyph { width: 52 * root.u; height: width; kind: "games"; color: T.magenta; anchors.verticalCenter: parent.verticalCenter }
-            Text { text: "RETRO ARCADE"; color: T.text; font.pixelSize: 34 * root.u; font.bold: true; font.letterSpacing: 2; anchors.verticalCenter: parent.verticalCenter }
+            Text { text: "WAVE CULTURE MEDIA"; color: T.text; font.pixelSize: 34 * root.u; font.bold: true; font.letterSpacing: 2; anchors.verticalCenter: parent.verticalCenter }
             Text { visible: root.page !== "Home"; text: "/  " + (root.page === "Library" ? root.currentCategory : root.page === "Episodes" && root.currentSeries ? root.currentSeries.name
                                      : root.page === "Games" ? "Retro Games" + (gamesPage.title ? "  /  " + gamesPage.title : "") : root.page); color: T.muted; font.pixelSize: 28 * root.u; anchors.verticalCenter: parent.verticalCenter }
         }
@@ -245,7 +245,7 @@ Window {
             Rectangle {
                 visible: cloud.state === "pairing" && cloud.userCode.length > 0
                 width: 720 * root.u; height: 230 * root.u; radius: 14 * root.u
-                color: "#160d2e"; border.color: T.yellow; border.width: 4
+                color: "#0a1d3a"; border.color: T.yellow; border.width: 4
                 Column {
                     anchors.centerIn: parent; spacing: 10 * root.u
                     Text { anchors.horizontalCenter: parent.horizontalCenter; text: "Approve this code in the Arcade dashboard"; color: T.text; font.pixelSize: 22 * root.u }

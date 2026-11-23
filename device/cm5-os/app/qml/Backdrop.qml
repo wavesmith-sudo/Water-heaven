@@ -11,11 +11,11 @@ Item {
     Rectangle {
         anchors.fill: parent
         gradient: Gradient {
-            GradientStop { position: 0.0; color: "#0a0618" }
-            GradientStop { position: 0.45; color: "#2b0f4d" }
-            GradientStop { position: 0.52; color: "#5a1466" }
-            GradientStop { position: 0.53; color: "#12062a" }
-            GradientStop { position: 1.0; color: "#07030f" }
+            GradientStop { position: 0.0; color: "#030c1c" }
+            GradientStop { position: 0.45; color: "#0b2a55" }
+            GradientStop { position: 0.52; color: "#135a8f" }
+            GradientStop { position: 0.53; color: "#061633" }
+            GradientStop { position: 1.0; color: "#020812" }
         }
     }
     Canvas {
@@ -29,16 +29,16 @@ Item {
             // Sun with horizontal cut-outs
             var r = Math.min(w, h) * 0.2, cx = w / 2, cy = hz - r * 0.15
             var g = ctx.createLinearGradient(0, cy - r, 0, cy + r)
-            g.addColorStop(0, "#ffd23f"); g.addColorStop(0.55, "#ff6a5c"); g.addColorStop(1, "#e0207f")
+            g.addColorStop(0, "#9ef0ff"); g.addColorStop(0.55, "#3d9bff"); g.addColorStop(1, "#1f4fd1")
             ctx.save(); ctx.beginPath(); ctx.rect(0, 0, w, hz); ctx.clip()
             ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill()
-            ctx.fillStyle = "#2b0f4d"
+            ctx.fillStyle = "#0b2a55"
             for (var i = 0; i < 6; ++i) {
                 var y = cy - r * (0.62 - i * 0.14), bh = r * (0.025 + i * 0.016)
                 ctx.fillRect(cx - r, y, r * 2, bh)
             }
             // Skyline silhouettes
-            ctx.fillStyle = "#14082b"
+            ctx.fillStyle = "#071a36"
             var x = 0, seed = 7
             while (x < w) {
                 seed = (seed * 9301 + 49297) % 233280
@@ -51,7 +51,7 @@ Item {
             }
             ctx.restore()
             // Perspective grid floor
-            ctx.strokeStyle = "rgba(233, 91, 255, 0.55)"; ctx.lineWidth = 1.5
+            ctx.strokeStyle = "rgba(61, 155, 255, 0.55)"; ctx.lineWidth = 1.5
             for (var k = -14; k <= 14; ++k) {
                 ctx.beginPath(); ctx.moveTo(cx + k * w * 0.012, hz); ctx.lineTo(cx + k * w * 0.16, h); ctx.stroke()
             }

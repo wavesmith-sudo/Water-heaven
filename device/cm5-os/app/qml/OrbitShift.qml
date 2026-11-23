@@ -39,7 +39,7 @@ Item {
         }
     }
 
-    Rectangle { anchors.fill: parent; color: "#08041a" }
+    Rectangle { anchors.fill: parent; color: "#031024" }
     Item {
         id: arena
         width: game.ringR * 2.5; height: width
@@ -67,7 +67,7 @@ Item {
             id: core
             width: game.ringR * 0.26; height: width; radius: width / 2
             anchors.centerIn: parent
-            color: "#2b0f4d"; border.color: T.yellow; border.width: 4 * game.u
+            color: "#0b2a55"; border.color: T.yellow; border.width: 4 * game.u
             Rectangle { anchors.centerIn: parent; width: parent.width * 0.45; height: width; radius: width / 2; color: T.yellow
                 SequentialAnimation on opacity { loops: Animation.Infinite
                     NumberAnimation { to: 0.4; duration: 700 } NumberAnimation { to: 1; duration: 700 } } }
