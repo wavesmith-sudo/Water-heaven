@@ -1,0 +1,12 @@
+{
+  "name": "Wave Culture Media — Production",
+  "timezone": "America/New_York",
+  "events": [
+    {
+      "id": "calendar-created",
+      "title": "Production calendar created",
+      "date": "2026-11-23",
+      "description": "Starter event. Replace with the real production schedule."
+    }
+  ]
+}
