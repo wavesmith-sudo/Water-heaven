@@ -1,6 +1,6 @@
-# Retro Arcade Media Center
+# Wave Culture Media Center
 
-CM5-based TV media dongle: Buildroot OS, a Qt 6 "Retro Arcade" home screen that browses and plays
+CM5-based TV media dongle: Buildroot OS, a Qt 6 "Wave Culture Media" home screen (Retro Arcade layout, blue theme) that browses and plays
 from Jellyfin, and a FastAPI cloud backend for device settings and feature flags.
 
 ![Home screen](docs/screenshots/home.png)

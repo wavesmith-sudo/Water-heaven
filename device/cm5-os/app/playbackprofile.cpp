@@ -63,7 +63,7 @@ QJsonObject deviceProfile()
         QJsonObject{{"Type", "VideoAudio"},
                     {"Conditions", QJsonArray{condition("LessThanEqual", "AudioChannels", QString::number(MaxAudioChannels))}}},
     };
-    return {{"Name", "Retro Arcade CM5"},
+    return {{"Name", "Wave Culture Media CM5"},
             {"MaxStreamingBitrate", MaxStreamingBitrate},
             {"MaxStaticBitrate", MaxStreamingBitrate * 2},
             {"MusicStreamingTranscodingBitrate", 192000},

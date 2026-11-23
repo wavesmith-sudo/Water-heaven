@@ -28,7 +28,7 @@ class JellyfinClient : public QObject {
     Q_PROPERTY(QString error READ error NOTIFY errorChanged)
     Q_PROPERTY(bool busy READ busy NOTIFY busyChanged)
 public:
-    static constexpr auto ClientName = "Retro Arcade";
+    static constexpr auto ClientName = "Wave Culture Media";
     static constexpr auto ClientVersion = "0.4.0";
 
     explicit JellyfinClient(QObject *parent = nullptr);

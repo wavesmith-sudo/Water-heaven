@@ -108,7 +108,7 @@ void CloudClient::startPairing()
     m_userCode.clear();
     QString name = QSysInfo::machineHostName();
     if (name.isEmpty())
-        name = QStringLiteral("Retro Arcade CM5");
+        name = QStringLiteral("Wave Culture Media CM5");
     const QJsonObject body{{"device_name", name.left(120)}, {"firmware", m_firmware.left(60)}};
     auto *reply = m_net.post(request("/api/v1/pairing/start", false), QJsonDocument(body).toJson(QJsonDocument::Compact));
     connect(reply, &QNetworkReply::finished, this, [this, reply, generation]() {
