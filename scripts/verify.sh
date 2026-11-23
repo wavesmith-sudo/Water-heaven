@@ -10,6 +10,7 @@ WITH_QT=0
 echo '== Shell syntax =='
 bash -n "$ROOT/device/cm5-os/scripts/configure.sh"
 bash -n "$ROOT/scripts/smoke_api.sh"
+bash -n "$ROOT/device/cm5-os/tools/make_test_media.sh"
 sh -n "$ROOT/device/cm5-os/br2-external/board/cm5/overlay/etc/init.d/S95cm5home"
 
 echo '== Python compilation =='
