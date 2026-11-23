@@ -101,7 +101,9 @@ jobs:
           # _headers and _redirects only at the site root, so their rules are appended there.
           if [ -d calendar ]; then
             mkdir -p site/schedule
-            cp calendar/index.html calendar/events.json calendar/production.ics site/schedule/
+            # Everything in calendar/ except its sources and root-only config files.
+            cp -r calendar/. site/schedule/
+            rm -f site/schedule/README.md site/schedule/build_ics.py site/schedule/_headers site/schedule/_redirects
             if [ -f calendar/_headers ]; then
               cat calendar/_headers >> site/_headers
             fi
@@ -156,7 +158,9 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           # Creates the Pages project on the first run; fails harmlessly once it exists.
           preCommands: npx wrangler pages project create ${{ env.PAGES_PROJECT }} --production-branch=main || true
-          command: pages deploy site --project-name=${{ env.PAGES_PROJECT }} --branch=${{ github.ref_name }} --commit-dirty=true
+          # Hause chose (2026-11-23) to serve the preview at the main address before the PRs merge,
+          # so the PR #5 branch deploys to the production branch too. Other branches get previews.
+          command: pages deploy site --project-name=${{ env.PAGES_PROJECT }} --branch=${{ (github.ref_name == 'main' || github.ref_name == 'claude/project-thread-dgc794') && 'main' || github.ref_name }} --commit-dirty=true
 
       - name: Summary
         if: always()
