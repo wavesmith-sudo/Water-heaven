@@ -18,3 +18,5 @@ Subscribed calendars refresh on the client's schedule (Google: every few hours u
 `calendar/index.html` shows the schedule and reads `events.json` next to it, so it can be
 served as-is by any static host (the Cloudflare web preview serves this folder at `/schedule/`).
 `_headers` makes Cloudflare serve the feed as `text/calendar`.
+`_redirects` adds the short addresses `/shoots` (page) and `/shoots.ics` (feed); like
+`_headers`, it must be merged into the site root's `_redirects`.
