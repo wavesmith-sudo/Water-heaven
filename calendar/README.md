@@ -20,3 +20,8 @@ served as-is by any static host (the Cloudflare web preview serves this folder a
 `_headers` makes Cloudflare serve the feed as `text/calendar`.
 `_redirects` adds the short addresses `/shoots` (page) and `/shoots.ics` (feed); like
 `_headers`, it must be merged into the site root's `_redirects`.
+
+## Media tab
+
+The page's Media tab lists `media.json` links. Put HTML pages for it in `calendar/media/`
+and link them as `media/<file>.html`; a link with `"url": null` shows as "Coming soon".
