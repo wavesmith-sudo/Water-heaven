@@ -1,0 +1,11 @@
+// Copied to the root of the generated `web-preview-site` branch by web-preview.yml.
+// Cloudflare Workers Builds runs `npx wrangler deploy` there, which uploads ./public as
+// static assets. "name" must match the Worker's name in the Cloudflare dashboard.
+{
+  "name": "water-heaven",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "directory": "./public",
+    "not_found_handling": "single-page-application"
+  }
+}
