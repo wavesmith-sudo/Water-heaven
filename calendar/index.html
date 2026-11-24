@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wave Culture Shoot Schedule</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700&family=Inter:wght@400;500;600&display=swap">
+<style>
+*{box-sizing:border-box}
+[hidden]{display:none !important}
+body{margin:0}
+/* Layout: one column call sheet. Next-shoot banner, then shoots grouped by month, then subscribe options. */
+:root {
+  --bg: #f2f6fb;
+  --surface: #ffffff;
+  --ink: #0d1f3a;
+  --muted: #5a6b85;
+  --line: #d6e0ee;
+  --wave: #1652c8;
+  --wave-ink: #ffffff;
+  --sun: #ffd23f;
+  --sun-ink: #1a1400;
+  --display: "Unbounded", "Arial Black", system-ui, sans-serif;
+  --body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #07111f; --surface: #0e1d33; --ink: #e8eef8; --muted: #93a4c0; --line: #1f3352;
+    --wave: #3f7bf0; --wave-ink: #ffffff; --sun: #ffd23f; --sun-ink: #1a1400; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #07111f; --surface: #0e1d33; --ink: #e8eef8; --muted: #93a4c0; --line: #1f3352;
+  --wave: #3f7bf0; --wave-ink: #ffffff; --sun: #ffd23f; --sun-ink: #1a1400; color-scheme: dark;
+}
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.5; }
+.wrap { max-width: 680px; margin: 0 auto; padding-block: 32px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 28px; }
+header { display: flex; flex-direction: column; gap: 6px; }
+.brand { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--wave); font-weight: 600; }
+h1 { font-family: var(--display); font-weight: 700; font-size: clamp(26px, 6vw, 38px); line-height: 1.1; margin: 0; text-wrap: balance; }
+.next { background: var(--wave); color: var(--wave-ink); border-radius: 14px; padding: 20px 22px;
+  display: grid; grid-template-columns: 1fr auto; gap: 4px 16px; align-items: end; }
+.next .label { grid-column: 1 / -1; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; opacity: .85; }
+.next .what { font-family: var(--display); font-weight: 500; font-size: clamp(18px, 4.5vw, 24px); line-height: 1.2; min-width: 0; }
+.next .when { font-size: 14px; opacity: .9; grid-column: 1; }
+.count { grid-column: 2; grid-row: 2 / 4; background: var(--sun); color: var(--sun-ink); border-radius: 10px;
+  padding: 8px 14px; text-align: center; font-variant-numeric: tabular-nums; }
+.count b { display: block; font-family: var(--display); font-size: 28px; line-height: 1; }
+.count span { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
+.wrap.wide { max-width: 1100px; }
+section { display: flex; flex-direction: column; gap: 10px; }
+h2 { font-family: var(--display); font-weight: 500; font-size: 15px; letter-spacing: .04em; margin: 0; color: var(--muted); }
+ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; border-top: 1px solid var(--line); }
+li { display: grid; grid-template-columns: 64px 1fr auto; gap: 14px; align-items: center; padding: 14px 2px; border-bottom: 1px solid var(--line); }
+.date { display: flex; flex-direction: column; align-items: center; line-height: 1; font-variant-numeric: tabular-nums; }
+.date .d { font-family: var(--display); font-weight: 700; font-size: 26px; }
+.date .w { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-top: 4px; }
+.show { min-width: 0; }
+.show .t { font-weight: 600; font-size: 16px; }
+.show .s { color: var(--muted); font-size: 13px; }
+.pill { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; font-weight: 600; padding: 4px 9px; border-radius: 999px; white-space: nowrap;
+  border: 1px solid var(--line); color: var(--muted); }
+li.is-next .pill { background: var(--sun); color: var(--sun-ink); border-color: var(--sun); }
+li.is-today .pill { background: var(--wave); color: var(--wave-ink); border-color: var(--wave); }
+li.is-past { opacity: .55; }
+.tabs { display: flex; gap: 6px; border-bottom: 1px solid var(--line); }
+.tab { font: 600 14px var(--body); padding: 10px 14px; border: 0; border-bottom: 3px solid transparent; background: none; color: var(--muted); cursor: pointer; margin-bottom: -1px; }
+.tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--sun); }
+.tab:focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; }
+.panel { display: flex; flex-direction: column; gap: 28px; }
+.media { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); gap: 12px; }
+.card { display: flex; flex-direction: column; gap: 6px; padding: 16px 18px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); color: var(--ink); text-decoration: none; min-width: 0; }
+a.card:hover { border-color: var(--wave); }
+a.card:focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; }
+.card .k { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--wave); font-weight: 600; }
+.card .t { font-family: var(--display); font-weight: 500; font-size: 17px; line-height: 1.25; }
+.card .s { color: var(--muted); font-size: 13px; }
+.dash-bar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; }
+.dash-bar p { margin: 0; color: var(--muted); max-width: 60ch; min-width: 0; }
+.dash-frame { width: 100%; max-width: 100%; aspect-ratio: 16 / 9; min-height: 320px; border-radius: 12px; overflow: hidden; border: 1px solid var(--line); background: #000; }
+.dash-frame iframe { width: 100%; height: 100%; border: 0; display: block; }
+.card.soon { opacity: .7; border-style: dashed; }
+li.is-past .t { text-decoration: line-through; text-decoration-thickness: 1px; }
+.sub { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; gap: 14px; }
+.sub p { margin: 0; color: var(--muted); max-width: 60ch; }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.btn { font: 600 14px var(--body); padding: 10px 16px; border-radius: 10px; text-decoration: none; cursor: pointer;
+  border: 1px solid var(--wave); background: var(--wave); color: var(--wave-ink); }
+.btn.alt { background: transparent; color: var(--ink); border-color: var(--line); }
+.btn:focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; }
+.url { display: flex; gap: 8px; align-items: center; min-width: 0; }
+.url input { flex: 1; min-width: 0; font: 13px ui-monospace, Consolas, monospace; padding: 9px 10px; border-radius: 8px;
+  border: 1px solid var(--line); background: var(--bg); color: var(--ink); }
+.note { font-size: 13px; color: var(--muted); min-height: 1.2em; }
+footer { font-size: 12px; color: var(--muted); }
+@media (max-width: 420px) { li { grid-template-columns: 52px 1fr; } li .pill { grid-column: 2; justify-self: start; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="brand">Wave Culture Media</div>
+    <h1>Shoot Schedule</h1>
+  </header>
+
+  <div class="tabs" role="tablist" aria-label="Sections">
+    <button class="tab" role="tab" id="tab-schedule" aria-controls="panel-schedule" aria-selected="true" type="button">Schedule</button>
+    <button class="tab" role="tab" id="tab-media" aria-controls="panel-media" aria-selected="false" type="button">Media</button>
+    <button class="tab" role="tab" id="tab-dashboard" aria-controls="panel-dashboard" aria-selected="false" type="button">Dashboard</button>
+  </div>
+
+  <div class="panel" id="panel-schedule" role="tabpanel" aria-labelledby="tab-schedule">
+
+  <div class="next" id="next" hidden>
+    <div class="label" id="next-label">Next shoot</div>
+    <div class="what" id="next-what"></div>
+    <div class="when" id="next-when"></div>
+    <div class="count" id="next-count"><b id="next-days"></b><span id="next-unit">days</span></div>
+  </div>
+
+  <div id="months"></div>
+
+  <section class="sub" aria-labelledby="sub-h">
+    <h2 id="sub-h">Add to your calendar</h2>
+    <p>Subscribe once and new shoots show up in your calendar app on their own. Google refreshes subscribed calendars every few hours, sometimes up to a day.</p>
+    <div class="actions">
+      <a class="btn" id="apple" href="#">Apple / Outlook</a>
+      <a class="btn alt" id="google" href="#">Google Calendar</a>
+    </div>
+    <div class="url">
+      <input id="feed-url" readonly aria-label="Calendar feed link">
+      <button class="btn alt" id="copy" type="button">Copy</button>
+    </div>
+    <div class="note" id="copy-note" role="status"></div>
+  </section>
+
+  </div>
+
+  <div class="panel" id="panel-media" role="tabpanel" aria-labelledby="tab-media" hidden>
+    <div class="media" id="media-list"></div>
+  </div>
+
+  <div class="panel" id="panel-dashboard" role="tabpanel" aria-labelledby="tab-dashboard" hidden>
+    <div class="dash-bar">
+      <p>The Wave Culture Media center, running in your browser with demo titles. Click inside it, then use the arrow keys and Enter.</p>
+      <a class="btn" href="/" target="_blank" rel="noopener">Open full screen</a>
+    </div>
+    <div class="dash-frame"><iframe id="dash" title="Wave Culture Media center dashboard" data-src="/" allow="autoplay; fullscreen" allowfullscreen></iframe></div>
+  </div>
+
+  <footer>All shoots are all-day. Times shown in Eastern time (Detroit).</footer>
+</div>
+
+<script>
+const FEED = new URL("production.ics", location.href).href;
+let SHOOTS = [
+  { date: "2026-11-20", show: "Drink or Drop", detail: "Season 2" },
+  { date: "2026-12-19", show: "True Colors", detail: "Season 6" },
+  { date: "2026-12-20", show: "Drink or Drop", detail: "Christmas Special" }
+];
+
+function todayISO() {
+  const p = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Detroit", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date());
+  const g = t => p.find(x => x.type === t).value;
+  return `${g("year")}-${g("month")}-${g("day")}`;
+}
+const asDate = iso => new Date(iso + "T12:00:00Z");
+const daysBetween = (a, b) => Math.round((asDate(b) - asDate(a)) / 86400000);
+const fmt = (iso, o) => asDate(iso).toLocaleDateString("en-US", { timeZone: "UTC", ...o });
+
+function render() {
+  const today = todayISO();
+  const sorted = [...SHOOTS].sort((a, b) => a.date.localeCompare(b.date));
+  const next = sorted.find(s => s.date >= today);
+
+  const box = document.getElementById("next");
+  if (next) {
+    const n = daysBetween(today, next.date);
+    box.hidden = false;
+    document.getElementById("next-label").textContent = n === 0 ? "Shooting today" : "Next shoot";
+    document.getElementById("next-what").textContent = `${next.show}: ${next.detail}`;
+    document.getElementById("next-when").textContent = fmt(next.date, { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+    document.getElementById("next-days").textContent = n === 0 ? "Today" : n;
+    document.getElementById("next-unit").textContent = n === 0 ? "" : (n === 1 ? "day" : "days");
+  } else box.hidden = true;
+
+  const months = document.getElementById("months");
+  months.replaceChildren();
+  const groups = new Map();
+  for (const s of sorted) {
+    const k = s.date.slice(0, 7);
+    if (!groups.has(k)) groups.set(k, []);
+    groups.get(k).push(s);
+  }
+  const wrap = document.createElement("div");
+  wrap.style.cssText = "display:flex;flex-direction:column;gap:24px";
+  for (const [k, list] of groups) {
+    const sec = document.createElement("section");
+    const h = document.createElement("h2");
+    h.textContent = fmt(k + "-01", { month: "long", year: "numeric" });
+    const ol = document.createElement("ol");
+    for (const s of list) {
+      const li = document.createElement("li");
+      const d = daysBetween(today, s.date);
+      let state = "Upcoming";
+      if (d < 0) { li.className = "is-past"; state = "Done"; }
+      else if (d === 0) { li.className = "is-today"; state = "Today"; }
+      else if (s === next) { li.className = "is-next"; state = `In ${d} day${d === 1 ? "" : "s"}`; }
+      else state = `In ${d} days`;
+      li.innerHTML = `<div class="date"><span class="d"></span><span class="w"></span></div>
+        <div class="show"><div class="t"></div><div class="s"></div></div><span class="pill"></span>`;
+      li.querySelector(".d").textContent = fmt(s.date, { day: "numeric" });
+      li.querySelector(".w").textContent = fmt(s.date, { weekday: "short" });
+      li.querySelector(".t").textContent = s.show;
+      li.querySelector(".s").textContent = s.detail;
+      li.querySelector(".pill").textContent = state;
+      ol.append(li);
+    }
+    sec.append(h, ol);
+    wrap.append(sec);
+  }
+  months.append(wrap);
+}
+
+document.getElementById("apple").href = FEED.replace(/^https:/, "webcal:");
+document.getElementById("google").href = "https://calendar.google.com/calendar/r?cid=" + encodeURIComponent(FEED.replace(/^https:/, "webcal:"));
+const input = document.getElementById("feed-url");
+input.value = FEED;
+document.getElementById("copy").addEventListener("click", () => {
+  const note = document.getElementById("copy-note");
+  navigator.clipboard.writeText(FEED).then(() => { note.textContent = "Link copied."; })
+    .catch(() => { input.select(); note.textContent = "Link selected. Press Ctrl+C or Cmd+C to copy."; });
+});
+
+render();
+fetch("events.json", { cache: "no-store" }).then(r => r.json()).then(cal => {
+  SHOOTS = cal.events.filter(e => e.date).map(e => {
+    const m = e.title.replace(/^Shoot:\s*/, "").split(/\s+—\s+/);
+    return { date: e.date, show: m[0], detail: m.slice(1).join(" — ") };
+  });
+  render();
+}).catch(() => {});
+let MEDIA = [];
+function renderMedia() {
+  const box = document.getElementById("media-list");
+  box.replaceChildren();
+  for (const m of MEDIA) {
+    const el = document.createElement(m.url ? "a" : "div");
+    el.className = "card" + (m.url ? "" : " soon");
+    if (m.url) { el.href = m.url; if (/^https?:/.test(m.url)) { el.target = "_blank"; el.rel = "noopener"; } }
+    el.innerHTML = '<span class="k"></span><span class="t"></span><span class="s"></span>';
+    el.querySelector(".k").textContent = m.kind || "Link";
+    el.querySelector(".t").textContent = m.title;
+    el.querySelector(".s").textContent = m.url ? (m.subtitle || "") : (m.subtitle ? m.subtitle + " · " : "") + "Coming soon";
+    box.append(el);
+  }
+  if (!MEDIA.length) box.textContent = "No media links yet.";
+}
+fetch("media.json", { cache: "no-store" }).then(r => r.json()).then(d => { MEDIA = d.links || []; renderMedia(); }).catch(() => renderMedia());
+
+function showTab(name) {
+  for (const t of ["schedule", "media", "dashboard"]) {
+    document.getElementById("tab-" + t).setAttribute("aria-selected", String(t === name));
+    document.getElementById("panel-" + t).hidden = t !== name;
+  }
+  const f = document.getElementById("dash");
+  if (name === "dashboard" && !f.src) f.src = f.dataset.src;
+  document.querySelector(".wrap").classList.toggle("wide", name === "dashboard");
+}
+document.getElementById("tab-schedule").addEventListener("click", () => { location.hash = "schedule"; });
+document.getElementById("tab-media").addEventListener("click", () => { location.hash = "media"; });
+document.getElementById("tab-dashboard").addEventListener("click", () => { location.hash = "dashboard"; });
+const route = () => showTab(["#media", "#dashboard"].includes(location.hash) ? location.hash.slice(1) : "schedule");
+addEventListener("hashchange", route);
+route();
+
+setInterval(render, 60 * 60 * 1000);
+</script>
+</body>
+</html>
