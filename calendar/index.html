@@ -81,6 +81,12 @@ a.card:focus-visible { outline: 3px solid var(--sun); outline-offset: 2px; }
 .dash-bar p { margin: 0; color: var(--muted); max-width: 60ch; min-width: 0; }
 .dash-frame { width: 100%; max-width: 100%; aspect-ratio: 16 / 9; min-height: 320px; border-radius: 12px; overflow: hidden; border: 1px solid var(--line); background: #000; }
 .dash-frame iframe { width: 100%; height: 100%; border: 0; display: block; }
+.clip { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px 22px; display: flex; flex-direction: column; gap: 14px; }
+.clip h2 { color: var(--ink); font-size: 20px; letter-spacing: 0; }
+.clip p { margin: 0; color: var(--muted); max-width: 60ch; }
+.clip ul { margin: 0; padding-left: 18px; color: var(--muted); }
+.clip code { font: 13px ui-monospace, Consolas, monospace; }
+.clip label { font-weight: 600; font-size: 13px; }
 .card.soon { opacity: .7; border-style: dashed; }
 li.is-past .t { text-decoration: line-through; text-decoration-thickness: 1px; }
 .sub { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; gap: 14px; }
@@ -110,6 +116,7 @@ footer { font-size: 12px; color: var(--muted); }
     <button class="tab" role="tab" id="tab-schedule" aria-controls="panel-schedule" aria-selected="true" type="button">Schedule</button>
     <button class="tab" role="tab" id="tab-media" aria-controls="panel-media" aria-selected="false" type="button">Media</button>
     <button class="tab" role="tab" id="tab-dashboard" aria-controls="panel-dashboard" aria-selected="false" type="button">Dashboard</button>
+    <button class="tab" role="tab" id="tab-clipper" aria-controls="panel-clipper" aria-selected="false" type="button">Clipper</button>
   </div>
 
   <div class="panel" id="panel-schedule" role="tabpanel" aria-labelledby="tab-schedule">
@@ -149,6 +156,30 @@ footer { font-size: 12px; color: var(--muted); }
       <a class="btn" href="/" target="_blank" rel="noopener">Open full screen</a>
     </div>
     <div class="dash-frame"><iframe id="dash" title="Wave Culture Media center dashboard" data-src="/" allow="autoplay; fullscreen" allowfullscreen></iframe></div>
+  </div>
+
+  <div class="panel" id="panel-clipper" role="tabpanel" aria-labelledby="tab-clipper" hidden>
+    <section class="clip" aria-labelledby="clip-h">
+      <div class="brand">Wave Culture Creator Studio</div>
+      <h2 id="clip-h">Clipper</h2>
+      <p>Cut vertical clips from our own footage: upload a video, pick in and out points, frame it for 9:16, add captions, and export an MP4.</p>
+      <div class="actions">
+        <a class="btn" id="clip-open" href="#" target="_blank" rel="noopener">Open Clipper</a>
+      </div>
+      <p class="note" id="clip-where"></p>
+    </section>
+    <section class="sub" aria-labelledby="clip-set-h">
+      <h2 id="clip-set-h">Clipper address</h2>
+      <p>Clipper is private and runs on the studio computer, so it only opens where it is running or reachable. Change the address here once it has its own web address. This is saved in this browser only.</p>
+      <label for="clip-url">Address</label>
+      <div class="url">
+        <input id="clip-url" type="url" inputmode="url" spellcheck="false" autocomplete="off">
+        <button class="btn alt" id="clip-save" type="button">Save</button>
+        <button class="btn alt" id="clip-reset" type="button">Reset</button>
+      </div>
+      <div class="note" id="clip-note" role="status"></div>
+      <p>Not opening? On the studio computer, start it from the <code>clipper</code> folder with <code>docker compose up</code>, then try again.</p>
+    </section>
   </div>
 
   <footer>All shoots are all-day. Times shown in Eastern time (Detroit).</footer>
@@ -262,7 +293,7 @@ function renderMedia() {
 fetch("media.json", { cache: "no-store" }).then(r => r.json()).then(d => { MEDIA = d.links || []; renderMedia(); }).catch(() => renderMedia());
 
 function showTab(name) {
-  for (const t of ["schedule", "media", "dashboard"]) {
+  for (const t of ["schedule", "media", "dashboard", "clipper"]) {
     document.getElementById("tab-" + t).setAttribute("aria-selected", String(t === name));
     document.getElementById("panel-" + t).hidden = t !== name;
   }
@@ -273,9 +304,40 @@ function showTab(name) {
 document.getElementById("tab-schedule").addEventListener("click", () => { location.hash = "schedule"; });
 document.getElementById("tab-media").addEventListener("click", () => { location.hash = "media"; });
 document.getElementById("tab-dashboard").addEventListener("click", () => { location.hash = "dashboard"; });
-const route = () => showTab(["#media", "#dashboard"].includes(location.hash) ? location.hash.slice(1) : "schedule");
+document.getElementById("tab-clipper").addEventListener("click", () => { location.hash = "clipper"; });
+const route = () => showTab(["#media", "#dashboard", "#clipper"].includes(location.hash) ? location.hash.slice(1) : "schedule");
 addEventListener("hashchange", route);
 route();
+
+// Clipper launcher. Default address comes from clipper.json; a per-browser override is kept in localStorage
+// so a private hostname never has to be committed to this public repo.
+const CLIP_KEY = "clipper-url";
+let clipDefault = "http://localhost:5173";
+const clipInput = document.getElementById("clip-url");
+const clipNote = document.getElementById("clip-note");
+function clipStored() { try { return localStorage.getItem(CLIP_KEY) || ""; } catch { return ""; } }
+function clipValid(u) { try { return /^https?:$/.test(new URL(u).protocol); } catch { return false; } }
+function renderClip() {
+  const stored = clipStored();
+  const url = clipValid(stored) ? stored : clipDefault;
+  document.getElementById("clip-open").href = url;
+  document.getElementById("clip-where").textContent = "Opens " + url + (stored ? " (saved in this browser)" : "");
+  clipInput.value = url;
+}
+document.getElementById("clip-save").addEventListener("click", () => {
+  const v = clipInput.value.trim();
+  if (!clipValid(v)) { clipNote.textContent = "Enter a full address that starts with http:// or https://."; return; }
+  try { localStorage.setItem(CLIP_KEY, v); clipNote.textContent = "Saved."; }
+  catch { clipNote.textContent = "This browser would not save it. It will open this address until you reload."; document.getElementById("clip-open").href = v; return; }
+  renderClip();
+});
+document.getElementById("clip-reset").addEventListener("click", () => {
+  try { localStorage.removeItem(CLIP_KEY); } catch {}
+  clipNote.textContent = "Back to the default address.";
+  renderClip();
+});
+renderClip();
+fetch("clipper.json", { cache: "no-store" }).then(r => r.json()).then(c => { if (clipValid(c.url)) { clipDefault = c.url; renderClip(); } }).catch(() => {});
 
 setInterval(render, 60 * 60 * 1000);
 </script>

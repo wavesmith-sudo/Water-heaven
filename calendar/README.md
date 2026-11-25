@@ -25,3 +25,11 @@ served as-is by any static host (the Cloudflare web preview serves this folder a
 
 The page's Media tab lists `media.json` links. Put HTML pages for it in `calendar/media/`
 and link them as `media/<file>.html`; a link with `"url": null` shows as "Coming soon".
+
+## Clipper tab
+
+The Clipper tab is a launcher for the Clipper creator studio (separate repo, `wavesmith-sudo/clipper`).
+It opens the address in `clipper.json`, which defaults to `http://localhost:5173`, Clipper's local
+Docker address. Clipper is private, so do not commit its private hostname here; anyone can set
+their own address on the tab, and it is kept in that browser's local storage only. The tab links
+out instead of embedding Clipper, because Cloudflare Access login pages refuse to load in a frame.
